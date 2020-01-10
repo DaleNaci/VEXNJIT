@@ -79,9 +79,6 @@ auto cubeIntakeController = AsyncMotionProfileControllerBuilder()
 auto timer = TimeUtilFactory().create().getTimer();
 
 
-void on_center_button() {}
-
-
 void initialize() {
 	leftLift.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rightLift.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -137,10 +134,6 @@ void initialize() {
 
 	pros::lcd::initialize();
 }
-
-
-void disabled() {}
-void competition_initialize() {}
 
 
 /**
@@ -375,3 +368,11 @@ void opcontrol() {
 		pros::delay(20);
 	}
 }
+
+
+/**
+ * Unused methods that are required by PROS. They might be used later.
+*/
+void disabled() {}
+void competition_initialize() {}
+void on_center_button() {}
