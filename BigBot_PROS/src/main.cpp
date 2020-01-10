@@ -76,8 +76,6 @@ auto cubeIntakeController = AsyncMotionProfileControllerBuilder()
 		chassis
 	).buildMotionProfileController();
 
-auto timer = TimeUtilFactory().create().getTimer();
-
 
 void initialize() {
 	leftLift.setBrakeMode(AbstractMotor::brakeMode::hold);
