@@ -15,16 +15,16 @@ int BOTTOM_RIGHT_LIFT_PORT = 3;
 
 Controller joystick;
 
-Motor leftClampMotor(LEFT_CLAMP_PORT, false, AbstractMotor::gearset::red);
-Motor rightClampMotor(RIGHT_CLAMP_PORT, false, AbstractMotor::gearset::red);
-Motor topLeftLiftMotor(TOP_LEFT_LIFT_PORT, false, AbstractMotor::gearset::red);
-Motor bottomLeftLiftMotor(BOTTOM_LEFT_LIFT_PORT, false, AbstractMotor::gearset::red);
-Motor topRightLiftMotor(TOP_RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red);
-Motor bottomRightLiftMotor(BOTTOM_RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red);
-Motor leftFrontDriveMotor(LEFT_FRONT_DRIVE_PORT, false, AbstractMotor::gearset::green);
-Motor leftBackDriveMotor(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green);
-Motor rightFrontDriveMotor(RIGHT_FRONT_DRIVE_PORT, true, AbstractMotor::gearset::green);
-Motor rightFrontBackMotor(RIGHT_BACK_DRIVE_PORT, true, AbstractMotor::gearset::green);
+Motor leftClampMotor(LEFT_CLAMP_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor rightClampMotor(RIGHT_CLAMP_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor topLeftLiftMotor(TOP_LEFT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor bottomLeftLiftMotor(BOTTOM_LEFT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor topRightLiftMotor(TOP_RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor bottomRightLiftMotor(BOTTOM_RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor leftFrontDriveMotor(LEFT_FRONT_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor leftBackDriveMotor(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rightFrontDriveMotor(RIGHT_FRONT_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rightFrontBackMotor(RIGHT_BACK_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
 
 ControllerButton clampInBtn(ControllerDigital::L1);
@@ -62,7 +62,7 @@ void initialize() {
 	bottomLeftLiftMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
 	bottomRightLiftMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
 
-leftClampMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
+	leftClampMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rightClampMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
 
 	pros::lcd::initialize();
@@ -77,8 +77,8 @@ void autonomous() {}
 
 
 void clamp(int speed) {
-	leftClampMotor.move_velocity(speed);
-	rightClampMotor.move_velocity(-speed);
+	leftClampMotor.moveVelocity(speed);
+	rightClampMotor.moveVelocity(-speed);
 }
 
 
@@ -88,15 +88,13 @@ void clamp(int speed) {
  * parameter.
 */
 void clampPosition(int pos, int speed) {
-	leftClampMotor.move_absolute(pos, speed);
-	rightClampMotor.move_absolute(-pos, speed);
+	leftClampMotor.moveAbsolute(pos, speed);
+	rightClampMotor.moveAbsolute(-pos, speed);
 }
 
 
 /**
- * Moves the clamp in our out, depending on when the L1 button is
- * pressed. If the clamp is already inwards, pressing it will move it
- * out. If it is already outwards, pressing it will move it in.
+ *
 */
 void clampControl() {
 	if (clampInBtn.isPressed()) {
@@ -109,26 +107,37 @@ void clampControl() {
 }
 
 
+/**
+ * Moves all 4 lift motors. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
+*/
 void lift(int speed) {
-	topLeftLiftMotor.move_velocity(-speed);
-	topRightLiftMotor.move_velocity(speed);
-	bottomLeftLiftMotor.move_velocity(speed);
-	bottomRightLiftMotor.move_velocity(-speed);
+	topLeftLiftMotor.moveVelocity(-speed);
+	topRightLiftMotor.moveVelocity(speed);
+	bottomLeftLiftMotor.moveVelocity(speed);
+	bottomRightLiftMotor.moveVelocity(-speed);
 }
 
 
+/**
+ * Moves the lift to a specific absolute position. Position will
+ * depend on the pos parameter. Speed will depend on the speed
+ * parameter.
+*/
 void liftPosition(int pos, int speed) {
-	topLeftLiftMotor.move_absolute(-pos, speed);
-	bottomLeftLiftMotor.move_absolute(pos, speed);
-	topRightLiftMotor.move_absolute(pos, speed);
-	bottomRightLiftMotor.move_absolute(-pos, speed);
+	topLeftLiftMotor.moveAbsolute(-pos, speed);
+	bottomLeftLiftMotor.moveAbsolute(pos, speed);
+	topRightLiftMotor.moveAbsolute(pos, speed);
+	bottomRightLiftMotor.moveAbsolute(-pos, speed);
 }
 
-
+/**
+ *
+*/
 void liftControl() {
 	if (liftUpBtn.isPressed()) {
 		lift(80);
-	} else if (liftDownBtn.isPressed() && topLeftLiftMotor.get_position() < -30) {
+	} else if (liftDownBtn.isPressed() && topLeftLiftMotor.getPosition() < -30) {
 		lift(-50);
 	}
 

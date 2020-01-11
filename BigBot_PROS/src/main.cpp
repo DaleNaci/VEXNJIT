@@ -121,6 +121,13 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
+			{2.8_ft, 2.1_ft, 0_deg}
+		},
+		"C_alt"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
 			{1.05_ft, 0_ft, 0_deg}
 		},
 		"D"
@@ -142,7 +149,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.2_ft, 0_ft, 0_deg}
+			{0.25_ft, 0_ft, 0_deg}
 		},
 		"Small"
 	);
@@ -341,7 +348,50 @@ void turn(QAngle angle, int speed) {
 }
 
 
-void autonomous() {
+void red() {
+	profileController->setTarget("Small");
+	profileController->waitUntilSettled();
+	profileController->setTarget("Small", true);
+	profileController->waitUntilSettled();
+
+	presets("X");
+	pros::delay(2000);
+	presets("B");
+	pros::delay(1000);
+
+	profileController->setTarget("A");
+	profileController->waitUntilSettled();
+	rollers(-100);
+	cubeIntakeController->setTarget("B");
+	cubeIntakeController->waitUntilSettled();
+	pros::delay(40);
+	rollers(0);
+
+	profileController->setTarget("C_alt", true);
+	profileController->waitUntilSettled();
+
+	profileController->setTarget("Wall_Back", true);
+	profileController->waitUntilSettled();
+
+	profileController->setTarget("D");
+	profileController->waitUntilSettled();
+	rollers(-100);
+	cubeIntakeController->setTarget("B");
+	cubeIntakeController->waitUntilSettled();
+	pros::delay(100);
+	rollers(0);
+
+	slowController->setTarget("E", true);
+	slowController->waitUntilSettled();
+
+	turn(-107.5_deg, 20);
+
+	profileController->setTarget("F");
+	profileController->waitUntilSettled();
+}
+
+
+void blue() {
 	profileController->setTarget("Small");
 	profileController->waitUntilSettled();
 	profileController->setTarget("Small", true);
@@ -381,8 +431,21 @@ void autonomous() {
 
 	profileController->setTarget("F");
 	profileController->waitUntilSettled();
+}
 
 
+void autonSelect(string selected) {
+	if (selected == "red") {
+		red();
+	} else if (selected == "blue") {
+		blue();
+	}
+}
+
+
+void autonomous() {
+	string SELECTED_AUTON = "red";
+	autonSelect(SELECTED_AUTON);
 }
 
 
