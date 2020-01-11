@@ -76,6 +76,17 @@ auto cubeIntakeController = AsyncMotionProfileControllerBuilder()
 		chassis
 	).buildMotionProfileController();
 
+auto slowController = AsyncMotionProfileControllerBuilder()
+	.withLimits(
+		{
+			0.2,
+			0.8,
+			1.4
+		}
+	).withOutput(
+		chassis
+	).buildMotionProfileController();
+
 
 void initialize() {
 	leftLift.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -96,28 +107,28 @@ void initialize() {
 	cubeIntakeController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.6_ft, 0_ft, 0_deg}
+			{2.8_ft, 0_ft, 0_deg}
 		},
 		"B"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.6_ft, -2.0_ft, 0_deg}
+			{2.8_ft, -2.1_ft, 0_deg}
 		},
 		"C"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{.9_ft, 0_ft, 0_deg}
+			{1.05_ft, 0_ft, 0_deg}
 		},
 		"D"
 	);
-	profileController->generatePath(
+	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.7_ft, 1.5_ft, 0_deg}
+			{2.0_ft, 2.2_ft, 0_deg}
 		},
 		"E"
 	);
@@ -127,6 +138,20 @@ void initialize() {
 			{1.4_ft, 0_ft, 0_deg}
 		},
 		"F"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.2_ft, 0_ft, 0_deg}
+		},
+		"Small"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.4_ft, 0_ft, 0_deg}
+		},
+		"Wall_Back"
 	);
 
 
@@ -317,9 +342,15 @@ void turn(QAngle angle, int speed) {
 
 
 void autonomous() {
+	profileController->setTarget("Small");
+	profileController->waitUntilSettled();
+	profileController->setTarget("Small", true);
+	profileController->waitUntilSettled();
+
 	presets("X");
 	pros::delay(2000);
 	presets("B");
+	pros::delay(1000);
 
 	profileController->setTarget("A");
 	profileController->waitUntilSettled();
@@ -332,6 +363,9 @@ void autonomous() {
 	profileController->setTarget("C", true);
 	profileController->waitUntilSettled();
 
+	profileController->setTarget("Wall_Back", true);
+	profileController->waitUntilSettled();
+
 	profileController->setTarget("D");
 	profileController->waitUntilSettled();
 	rollers(-100);
@@ -340,13 +374,14 @@ void autonomous() {
 	pros::delay(100);
 	rollers(0);
 
-	profileController->setTarget("E", true);
-	profileController->waitUntilSettled();
+	slowController->setTarget("E", true);
+	slowController->waitUntilSettled();
 
-	turn(215_deg, 20);
+	turn(-107.5_deg, 20);
 
 	profileController->setTarget("F");
 	profileController->waitUntilSettled();
+
 
 }
 
