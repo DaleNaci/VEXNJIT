@@ -3,26 +3,26 @@
 using namespace std;
 
 int8_t LEFT_ROLLER_PORT = 19;
-int8_t RIGHT_ROLLER_PORT = 11;
+int8_t RIGHT_ROLLER_PORT = 1;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
 int8_t TILTER_PORT = 15;
 int8_t LEFT_DRIVE_1_PORT = 18;
-int8_t LEFT_DRIVE_2_PORT = 20;
-int8_t LEFT_DRIVE_3_PORT = 9;
-int8_t LEFT_DRIVE_4_PORT = 10;
-int8_t RIGHT_DRIVE_1_PORT = 13;
-int8_t RIGHT_DRIVE_2_PORT = 14;
-int8_t RIGHT_DRIVE_3_PORT = 3;
-int8_t RIGHT_DRIVE_4_PORT = 4;
+int8_t LEFT_DRIVE_2_PORT = 13;
+int8_t LEFT_DRIVE_3_PORT = 17;
+int8_t LEFT_DRIVE_4_PORT = 20;
+int8_t RIGHT_DRIVE_1_PORT = 2;
+int8_t RIGHT_DRIVE_2_PORT = 6;
+int8_t RIGHT_DRIVE_3_PORT = 4;
+int8_t RIGHT_DRIVE_4_PORT = 7;
 
-Motor leftRoller(LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
-Motor rightRoller(RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor rollerL(LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor rollerR(RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
-Motor leftLift(LEFT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
-Motor rightLift(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor liftL(LEFT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor liftR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
-Motor trayMotor(TILTER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor tilter1(TILTER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
 
 Controller joystick;
@@ -89,13 +89,13 @@ auto slowController = AsyncMotionProfileControllerBuilder()
 
 
 void initialize() {
-	leftLift.setBrakeMode(AbstractMotor::brakeMode::hold);
-	rightLift.setBrakeMode(AbstractMotor::brakeMode::hold);
-	trayMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
+	liftL.setBrakeMode(AbstractMotor::brakeMode::hold);
+	liftR.setBrakeMode(AbstractMotor::brakeMode::hold);
+	tilter1.setBrakeMode(AbstractMotor::brakeMode::hold);
 
-	leftLift.tarePosition();
-	rightLift.tarePosition();
-	trayMotor.tarePosition();
+	liftL.tarePosition();
+	liftR.tarePosition();
+	tilter1.tarePosition();
 
 	profileController->generatePath(
 		{
@@ -135,7 +135,7 @@ void initialize() {
 	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 2.2_ft, 0_deg}
+			{1.8_ft, 0_ft, 0_deg}
 		},
 		"E"
 	);
@@ -171,8 +171,8 @@ void initialize() {
  * The range is -100 to 100.
 */
 void rollers(int speed) {
-	leftRoller.moveVelocity(-speed);
-	rightRoller.moveVelocity(speed);
+	rollerL.moveVelocity(-speed);
+	rollerR.moveVelocity(speed);
 }
 
 
@@ -181,8 +181,8 @@ void rollers(int speed) {
  * range is -100 to 100.
 */
 void lift(int speed) {
-	leftLift.moveVelocity(speed * 2);
-	rightLift.moveVelocity(-speed * 2);
+	liftL.moveVelocity(speed * 2);
+	liftR.moveVelocity(-speed * 2);
 }
 
 
@@ -192,8 +192,8 @@ void lift(int speed) {
  * parameter.
 */
 void liftPosition(int pos, int speed) {
-	leftLift.moveAbsolute(pos, speed * 2);
-	rightLift.moveAbsolute(-pos, speed * 2);
+	liftL.moveAbsolute(pos, speed * 2);
+	liftR.moveAbsolute(-pos, speed * 2);
 }
 
 
@@ -203,7 +203,7 @@ void liftPosition(int pos, int speed) {
  * of "hold."
 */
 void tilter(int speed) {
-	trayMotor.moveVelocity(speed);
+	tilter1.moveVelocity(speed);
 }
 
 
@@ -213,7 +213,7 @@ void tilter(int speed) {
  * parameter.
 */
 void tilterPosition(int pos, int speed) {
-	trayMotor.moveAbsolute(pos, speed);
+	tilter1.moveAbsolute(pos, speed);
 }
 
 
@@ -242,13 +242,19 @@ void rollersControl() {
 */
 void liftControl() {
 	if (liftUp.isPressed()) {
+		// liftL.moveVelocity(40);
+		// liftR.moveVelocity(-40);
 		lift(90);
 	} else if (liftDown.isPressed()) {
 		lift(-90);
+		// liftL.moveVelocity(-40);
+		// liftR.moveVelocity(40);
 	}
 
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
 		lift(0);
+		// liftL.moveVelocity(0);
+		// liftR.moveVelocity(0);
 	}
 }
 
@@ -268,7 +274,7 @@ void presets(string preset) {
 		liftPosition(5, 80);
 	}
 	if (preset == "Y") {
-		tilterPosition(0, 40);
+		tilterPosition(0, 80);
 	}
 }
 
@@ -291,31 +297,6 @@ void presetControl() {
 	if (presetY.isPressed()) {
 		presets("Y");
 	}
-
-	int diff = abs(leftLift.getPosition()) - abs(rightLift.getPosition());
-
-	if (abs(diff) > 90) {
-		int direction = leftLift.getDirection();
-
-		int reset_speed = 80;
-		if (direction == 1) {
-			if (diff > 0) {
-				rightLift.moveVelocity(0);
-				leftLift.moveAbsolute(-rightLift.getPosition(), reset_speed);
-			} else {
-				leftLift.moveVelocity(0);
-				rightLift.moveAbsolute(-leftLift.getPosition(), reset_speed);
-			}
-		} else {
-			if (diff > 0) {
-				rightLift.moveVelocity(0);
-				leftLift.moveAbsolute(-rightLift.getPosition(), reset_speed);
-			} else {
-				leftLift.moveVelocity(0);
-				rightLift.moveAbsolute(-leftLift.getPosition(), reset_speed);
-			}
-		}
-	}
 }
 
 
@@ -326,7 +307,7 @@ void presetControl() {
  * button has priority.
 */
 void tilterControl() {
-	if (trayUp.isPressed() && trayMotor.getTargetVelocity() != 40) {
+	if (trayUp.isPressed() && tilter1.getTargetVelocity() != 40) {
 		tilter(80);
 	} else if (trayDown.isPressed()) {
 		tilter(-65);
@@ -334,6 +315,14 @@ void tilterControl() {
 	if (trayUp.changedToReleased() || trayDown.changedToReleased()) {
 		tilter(0);
 	}
+}
+
+
+void driveControl() {
+	chassis->getModel()->arcade(
+		joystick.getAnalog(ControllerAnalog::leftY),
+		joystick.getAnalog(ControllerAnalog::rightX)
+	);
 }
 
 
@@ -383,11 +372,6 @@ void red() {
 
 	slowController->setTarget("E", true);
 	slowController->waitUntilSettled();
-
-	turn(-107.5_deg, 20);
-
-	profileController->setTarget("F");
-	profileController->waitUntilSettled();
 }
 
 
@@ -427,8 +411,11 @@ void blue() {
 	slowController->setTarget("E", true);
 	slowController->waitUntilSettled();
 
-	turn(-107.5_deg, 20);
+	turn(-93_deg, 20);
+}
 
+
+void testAuton() {
 	profileController->setTarget("F");
 	profileController->waitUntilSettled();
 }
@@ -439,27 +426,25 @@ void autonSelect(string selected) {
 		red();
 	} else if (selected == "blue") {
 		blue();
+	} else if (selected == "test") {
+		testAuton();
 	}
 }
 
 
 void autonomous() {
-	string SELECTED_AUTON = "red";
+	string SELECTED_AUTON = "blue";
 	autonSelect(SELECTED_AUTON);
 }
 
 
 void opcontrol() {
 	while(true) {
-		chassis->getModel()->arcade(
-			joystick.getAnalog(ControllerAnalog::leftY),
-			joystick.getAnalog(ControllerAnalog::rightX)
-		);
-
 		rollersControl();
 		liftControl();
 		tilterControl();
 		presetControl();
+		driveControl();
 
 		pros::delay(20);
 	}
