@@ -92,6 +92,8 @@ void initialize() {
 	liftL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	liftR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilter1.setBrakeMode(AbstractMotor::brakeMode::hold);
+	rollerL.setBrakeMode(AbstractMotor::brakeMode::hold);
+	rollerR.setBrakeMode(AbstractMotor::brakeMode::hold);
 
 	liftL.tarePosition();
 	liftR.tarePosition();
@@ -242,19 +244,13 @@ void rollersControl() {
 */
 void liftControl() {
 	if (liftUp.isPressed()) {
-		// liftL.moveVelocity(40);
-		// liftR.moveVelocity(-40);
 		lift(90);
 	} else if (liftDown.isPressed()) {
 		lift(-90);
-		// liftL.moveVelocity(-40);
-		// liftR.moveVelocity(40);
 	}
 
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
 		lift(0);
-		// liftL.moveVelocity(0);
-		// liftR.moveVelocity(0);
 	}
 }
 
@@ -315,6 +311,8 @@ void tilterControl() {
 	if (trayUp.changedToReleased() || trayDown.changedToReleased()) {
 		tilter(0);
 	}
+
+
 }
 
 
