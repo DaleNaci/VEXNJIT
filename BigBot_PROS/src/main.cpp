@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int8_t LEFT_ROLLER_PORT = 19;
+int8_t LEFT_ROLLER_PORT = 12;
 int8_t RIGHT_ROLLER_PORT = 1;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
@@ -49,7 +49,7 @@ auto chassis = ChassisControllerBuilder()
 	).withDimensions(
 		AbstractMotor::gearset::green,
 		{
-			{6.1_in, 12.5_in},
+			{6.34_in, 14.1_in},
 			static_cast<int32_t>(imev5GreenTPR * 2.0)
 		}
 	).build();
@@ -57,31 +57,9 @@ auto chassis = ChassisControllerBuilder()
 auto profileController = AsyncMotionProfileControllerBuilder()
 	.withLimits(
 		{
-			0.42,
-			0.8,
-			5.2
-		}
-	).withOutput(
-		chassis
-	).buildMotionProfileController();
-
-auto cubeIntakeController = AsyncMotionProfileControllerBuilder()
-	.withLimits(
-		{
-			0.25,
-			1.5,
-			3.0
-		}
-	).withOutput(
-		chassis
-	).buildMotionProfileController();
-
-auto slowController = AsyncMotionProfileControllerBuilder()
-	.withLimits(
-		{
-			0.2,
-			0.8,
-			1.4
+			0.265,
+			0.9,
+			5.21
 		}
 	).withOutput(
 		chassis
@@ -99,69 +77,78 @@ void initialize() {
 	liftR.tarePosition();
 	tilter1.tarePosition();
 
+
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{.4_ft, 0_ft, 0_deg}
+			{3.0_ft, 0_ft, 0_deg}
 		},
 		"A"
-	);
-	cubeIntakeController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, 0_ft, 0_deg}
-		},
-		"B"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{2.8_ft, -2.1_ft, 0_deg}
 		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, 2.1_ft, 0_deg}
-		},
-		"C_alt"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.05_ft, 0_ft, 0_deg}
-		},
-		"D"
-	);
-	slowController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.8_ft, 0_ft, 0_deg}
-		},
-		"E"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.4_ft, 0_ft, 0_deg}
-		},
-		"F"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.25_ft, 0_ft, 0_deg}
-		},
-		"Small"
+		"B"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{0.4_ft, 0_ft, 0_deg}
 		},
-		"Wall_Back"
+		"C"
 	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 0_ft, 0_deg}
+		},
+		"D"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 2.5_ft, 0_deg}
+		},
+		"E"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.78_ft, 0_ft, 0_deg}
+		},
+		"F"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.5_ft, 0_ft, 0_deg}
+		},
+		"G"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 1.0_ft, 0_deg}
+		},
+		"H"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"I"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.32_ft, 0_ft, 0_deg}
+		},
+		"J"
+	);
+
 
 	pros::lcd::initialize();
 }
@@ -344,92 +331,66 @@ void driveControl() {
 */
 void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(speed * 2);
-	chassis->turnAngle(angle);
+	chassis->turnAngle(angle / 2);
 	chassis->setMaxVelocity(200);
 }
 
 
 void red() {
-	profileController->setTarget("Small");
-	profileController->waitUntilSettled();
-	profileController->setTarget("Small", true);
-	profileController->waitUntilSettled();
 
-	presets("X");
-	pros::delay(2000);
-	presets("B");
-	pros::delay(1000);
-
-	profileController->setTarget("A");
-	profileController->waitUntilSettled();
-	rollers(-100);
-	cubeIntakeController->setTarget("B");
-	cubeIntakeController->waitUntilSettled();
-	pros::delay(40);
-	rollers(0);
-
-	profileController->setTarget("C_alt", true);
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("Wall_Back", true);
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("D");
-	profileController->waitUntilSettled();
-	rollers(-100);
-	cubeIntakeController->setTarget("B");
-	cubeIntakeController->waitUntilSettled();
-	pros::delay(100);
-	rollers(0);
-
-	slowController->setTarget("E", true);
-	slowController->waitUntilSettled();
 }
 
 
 void blue() {
-	profileController->setTarget("Small");
-	profileController->waitUntilSettled();
-	profileController->setTarget("Small", true);
-	profileController->waitUntilSettled();
-
-	presets("X");
-	pros::delay(2000);
-	presets("B");
-	pros::delay(1000);
-
+	rollers(-100);
 	profileController->setTarget("A");
 	profileController->waitUntilSettled();
-	rollers(-100);
-	cubeIntakeController->setTarget("B");
-	cubeIntakeController->waitUntilSettled();
-	pros::delay(40);
+	pros::delay(1200);
 	rollers(0);
 
-	profileController->setTarget("C", true);
+	profileController->setTarget("B", true);
 	profileController->waitUntilSettled();
 
-	profileController->setTarget("Wall_Back", true);
-	profileController->waitUntilSettled();
+	// profileController->setTarget("C", true);
+	// profileController->waitUntilSettled();
 
+	rollers(-100);
 	profileController->setTarget("D");
 	profileController->waitUntilSettled();
-	rollers(-100);
-	cubeIntakeController->setTarget("B");
-	cubeIntakeController->waitUntilSettled();
-	pros::delay(100);
+	pros::delay(2000);
 	rollers(0);
 
-	slowController->setTarget("E", true);
-	slowController->waitUntilSettled();
+	profileController->setTarget("E", true);
+	profileController->waitUntilSettled();
 
-	turn(-93_deg, 20);
+	profileController->setTarget("F");
+	profileController->waitUntilSettled();
+
+	pros::delay(100);
+	turn(90_deg, 15);
+	pros::delay(100);
+
+	profileController->setTarget("G", true);
+	profileController->waitUntilSettled();
+
+	profileController->setTarget("H");
+	profileController->waitUntilSettled();
+
+	pros::delay(100);
+	turn(135_deg, 10);
+	pros::delay(100);
+
+	profileController->setTarget("I");
+	profileController->waitUntilSettled();
+
+	// profileController->setTarget("J", true);
+	// profileController->waitUntilSettled();
+
 }
 
 
 void testAuton() {
-	profileController->setTarget("F");
-	profileController->waitUntilSettled();
+	turn(45_deg, 15);
 }
 
 
