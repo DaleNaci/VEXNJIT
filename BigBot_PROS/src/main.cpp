@@ -359,6 +359,8 @@ void blue() {
 	profileController->setTarget("E");
 	profileController->waitUntilSettled();
 
+	rollers(0);
+
 	turn(90_deg, 14);
 
 	profileController->setTarget("F", true);
