@@ -164,6 +164,12 @@ void rollers(int speed) {
 }
 
 
+void rollersPosition(int pos, int speed) {
+	rollerL.moveAbsolute(-pos, speed);
+	rollerR.moveAbsolute(pos, speed);
+}
+
+
 /**
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
