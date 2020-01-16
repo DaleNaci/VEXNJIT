@@ -10,7 +10,7 @@ int8_t TILTER_PORT = 15;
 int8_t LEFT_DRIVE_1_PORT = 18;
 int8_t LEFT_DRIVE_2_PORT = 13;
 int8_t LEFT_DRIVE_3_PORT = 17;
-int8_t LEFT_DRIVE_4_PORT = 20;
+int8_t LEFT_DRIVE_4_PORT = 14;
 int8_t RIGHT_DRIVE_1_PORT = 2;
 int8_t RIGHT_DRIVE_2_PORT = 6;
 int8_t RIGHT_DRIVE_3_PORT = 4;
@@ -33,8 +33,8 @@ ControllerButton intakeOut(ControllerDigital::L2);
 ControllerButton liftUp(ControllerDigital::up);
 ControllerButton liftDown(ControllerDigital::down);
 
-ControllerButton trayDown(ControllerDigital::R1);
-ControllerButton trayUp(ControllerDigital::R2);
+ControllerButton trayUp(ControllerDigital::R1);
+ControllerButton trayDown(ControllerDigital::R2);
 
 ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetA(ControllerDigital::A);
@@ -163,7 +163,6 @@ void initialize() {
 		"Wall_Back"
 	);
 
-
 	pros::lcd::initialize();
 }
 
@@ -226,12 +225,22 @@ void tilterPosition(int pos, int speed) {
  * manipulator will outtake. The up button has priority.
 */
 void rollersControl() {
-	if (intakeIn.isPressed()) {
-		rollers(100);
-	} else if (intakeOut.isPressed()) {
-		rollers(-100);
+	if (liftL.getPosition() > 300) {
+		if (intakeIn.isPressed()) {
+			rollers(50);
+		} else if (intakeOut.isPressed()) {
+			rollers(-20);
+		} else {
+			rollers(0);
+		}
 	} else {
-		rollers(0);
+		if (intakeIn.isPressed()) {
+			rollers(100);
+		} else if (intakeOut.isPressed()) {
+			rollers(-100);
+		} else {
+			rollers(0);
+		}
 	}
 }
 
@@ -261,13 +270,20 @@ void liftControl() {
 */
 void presets(string preset) {
 	if (preset == "X") {
-		liftPosition(690, 80);
+		tilterPosition(-630, -100);
+		if (tilter1.getPosition() < -300) {
+			liftPosition(730, 100);
+		}
 	}
 	if (preset == "A") {
-		liftPosition(905, 80);
+		tilterPosition(-630, -100);
+		if (tilter1.getPosition() < -300) {
+			liftPosition(930, 100);
+		}
 	}
 	if (preset == "B") {
-		liftPosition(5, 80);
+		liftPosition(5, 100);
+		tilterPosition(0, 100);
 	}
 	if (preset == "Y") {
 		tilterPosition(0, 80);
@@ -303,16 +319,14 @@ void presetControl() {
  * button has priority.
 */
 void tilterControl() {
-	if (trayUp.isPressed() && tilter1.getTargetVelocity() != 40) {
+	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
 		tilter(80);
-	} else if (trayDown.isPressed()) {
+	} else if (trayUp.isPressed()) {
 		tilter(-65);
 	}
-	if (trayUp.changedToReleased() || trayDown.changedToReleased()) {
+	if (trayDown.changedToReleased() || trayUp.changedToReleased()) {
 		tilter(0);
 	}
-
-
 }
 
 
