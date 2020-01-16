@@ -357,8 +357,6 @@ void blue() {
 	profileController->setTarget("B", true);
 	profileController->waitUntilSettled();
 
-	// profileController->setTarget("C", true);
-	// profileController->waitUntilSettled();
 
 	rollers(-100);
 	profileController->setTarget("D");
