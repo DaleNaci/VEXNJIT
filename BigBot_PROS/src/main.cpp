@@ -104,50 +104,44 @@ void initialize() {
 			{0_ft, 0_ft, 0_deg},
 			{3.8_ft, 0_ft, 0_deg}
 		},
-		"D"
+		"C"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{3.8_ft, 2.5_ft, 0_deg}
 		},
-		"E"
+		"D"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{1.78_ft, 0_ft, 0_deg}
 		},
-		"F"
+		"E"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{2.5_ft, 0_ft, 0_deg}
 		},
-		"G"
+		"F"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 1.0_ft, 0_deg}
+			{2.0_ft, 0.95_ft, 0_deg}
 		},
-		"H"
+		"G"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{2.0_ft, 0_ft, 0_deg}
 		},
-		"I"
+		"H"
 	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.32_ft, 0_ft, 0_deg}
-		},
-		"J"
-	);
+
 
 
 	pros::lcd::initialize();
@@ -220,9 +214,9 @@ void tilterPosition(int pos, int speed) {
 void rollersControl() {
 	if (liftL.getPosition() > 300) {
 		if (intakeIn.isPressed()) {
-			rollers(50);
+			rollers(56);
 		} else if (intakeOut.isPressed()) {
-			rollers(-20);
+			rollers(-40);
 		} else {
 			rollers(0);
 		}
@@ -263,14 +257,14 @@ void liftControl() {
 */
 void presets(string preset) {
 	if (preset == "X") {
-		tilterPosition(-630, -100);
-		if (tilter1.getPosition() < -300) {
+		tilterPosition(-660, -100);
+		if (tilter1.getPosition() < -240) {
 			liftPosition(730, 100);
 		}
 	}
 	if (preset == "A") {
-		tilterPosition(-630, -100);
-		if (tilter1.getPosition() < -300) {
+		tilterPosition(-660, -100);
+		if (tilter1.getPosition() < -240) {
 			liftPosition(930, 100);
 		}
 	}
@@ -351,45 +345,32 @@ void blue() {
 	rollers(-100);
 	profileController->setTarget("A");
 	profileController->waitUntilSettled();
-	pros::delay(1200);
-	rollers(0);
 
 	profileController->setTarget("B", true);
 	profileController->waitUntilSettled();
 
-
-	rollers(-100);
-	profileController->setTarget("D");
-	profileController->waitUntilSettled();
-	pros::delay(2000);
-	rollers(0);
-
-	profileController->setTarget("E", true);
+	profileController->setTarget("C");
 	profileController->waitUntilSettled();
 
-	profileController->setTarget("F");
+	profileController->setTarget("D", true);
 	profileController->waitUntilSettled();
 
-	pros::delay(100);
-	turn(90_deg, 15);
-	pros::delay(100);
 
-	profileController->setTarget("G", true);
+	profileController->setTarget("E");
 	profileController->waitUntilSettled();
+
+	turn(90_deg, 14);
+
+	profileController->setTarget("F", true);
+	profileController->waitUntilSettled();
+
+	profileController->setTarget("G");
+	profileController->waitUntilSettled();
+
+	turn(135_deg, 9);
 
 	profileController->setTarget("H");
 	profileController->waitUntilSettled();
-
-	pros::delay(100);
-	turn(135_deg, 10);
-	pros::delay(100);
-
-	profileController->setTarget("I");
-	profileController->waitUntilSettled();
-
-	// profileController->setTarget("J", true);
-	// profileController->waitUntilSettled();
-
 }
 
 
