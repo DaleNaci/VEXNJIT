@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int8_t LEFT_ROLLER_PORT = 12;
+int8_t LEFT_ROLLER_PORT = 11;
 int8_t RIGHT_ROLLER_PORT = 1;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
@@ -140,6 +140,13 @@ void initialize() {
 			{2.0_ft, 0_ft, 0_deg}
 		},
 		"H"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"I"
 	);
 
 
@@ -307,9 +314,9 @@ void presetControl() {
 */
 void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
-		tilter(80);
+		tilter(90);
 	} else if (trayUp.isPressed()) {
-		tilter(-65);
+		tilter(-90);
 	}
 	if (trayDown.changedToReleased() || trayUp.changedToReleased()) {
 		tilter(0);
@@ -373,6 +380,16 @@ void blue() {
 
 	profileController->setTarget("H");
 	profileController->waitUntilSettled();
+
+	tilterPosition(-1000, -65);
+	while (tilter1.getPosition() > -950) {
+		continue;
+	}
+	pros::delay(2000);
+
+	profileController->setTarget("I", true);
+	profileController->waitUntilSettled();
+
 }
 
 
@@ -405,6 +422,8 @@ void opcontrol() {
 		tilterControl();
 		presetControl();
 		driveControl();
+
+		pros::lcd::set_text(1, std::to_string(tilter1.getPosition()));
 
 		pros::delay(20);
 	}
