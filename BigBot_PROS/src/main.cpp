@@ -3,7 +3,7 @@
 using namespace std;
 
 int8_t LEFT_ROLLER_PORT = 11;
-int8_t RIGHT_ROLLER_PORT = 1;
+int8_t RIGHT_ROLLER_PORT = 21;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
 int8_t TILTER_PORT = 15;
@@ -88,7 +88,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, -2.1_ft, 0_deg}
+			{2.8_ft, -2.23_ft, 0_deg}
 		},
 		"B"
 	);
@@ -149,6 +149,14 @@ void initialize() {
 		"I"
 	);
 
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.5_ft, 0_ft, 0_deg}
+		},
+		"Wall"
+	);
+
 
 
 	pros::lcd::initialize();
@@ -166,6 +174,8 @@ void rollers(int speed) {
 
 
 void rollersPosition(int pos, int speed) {
+	rollerL.tarePosition();
+	rollerR.tarePosition();
 	rollerL.moveAbsolute(-pos, speed);
 	rollerR.moveAbsolute(pos, speed);
 }
@@ -316,7 +326,7 @@ void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
 		tilter(90);
 	} else if (trayUp.isPressed()) {
-		tilter(-90);
+		tilter(-85);
 	}
 	if (trayDown.changedToReleased() || trayUp.changedToReleased()) {
 		tilter(0);
@@ -342,6 +352,11 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
+void runPath(string pathName, bool reversed=false, bool mirrored=false) {
+	profileController->setTarget(pathName, reversed, mirrored);
+	profileController->waitUntilSettled();
+}
+
 
 void red() {
 
@@ -350,51 +365,33 @@ void red() {
 
 void blue() {
 	rollers(-100);
-	profileController->setTarget("A");
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("B", true);
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("C");
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("D", true);
-	profileController->waitUntilSettled();
-
-
-	profileController->setTarget("E");
-	profileController->waitUntilSettled();
-
+	runPath("A");
+	runPath("B", true);
+	runPath("Wall", true);
+	runPath("C");
+	runPath("D", true);
 	rollers(0);
-
+	runPath("E");
 	turn(90_deg, 14);
-
-	profileController->setTarget("F", true);
-	profileController->waitUntilSettled();
-
-	profileController->setTarget("G");
-	profileController->waitUntilSettled();
-
+	runPath("F", true);
+	rollersPosition(110, 40);
+	runPath("G");
 	turn(135_deg, 9);
+	runPath("H");
 
-	profileController->setTarget("H");
-	profileController->waitUntilSettled();
-
-	tilterPosition(-1000, -65);
+	tilterPosition(-1000, -80);
 	while (tilter1.getPosition() > -950) {
 		continue;
 	}
-	pros::delay(2000);
+	pros::delay(1400);
 
-	profileController->setTarget("I", true);
-	profileController->waitUntilSettled();
+	runPath("I");
 
 }
 
 
 void testAuton() {
-	turn(45_deg, 15);
+	rollersPosition(100, 30);
 }
 
 
