@@ -144,9 +144,16 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
+			{1.0_ft, 0_ft, 0_deg}
 		},
 		"I"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"J"
 	);
 
 	profileController->generatePath(
@@ -386,7 +393,7 @@ void blue() {
 	pros::delay(1400);
 
 	runPath("I");
-
+	runPath("J");
 }
 
 
