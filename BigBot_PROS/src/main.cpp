@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int8_t LEFT_ROLLER_PORT = 11;
+int8_t LEFT_ROLLER_PORT = 8;
 int8_t RIGHT_ROLLER_PORT = 21;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
@@ -15,6 +15,8 @@ int8_t RIGHT_DRIVE_1_PORT = 2;
 int8_t RIGHT_DRIVE_2_PORT = 6;
 int8_t RIGHT_DRIVE_3_PORT = 4;
 int8_t RIGHT_DRIVE_4_PORT = 7;
+int SWITCH_PORT = 8;
+int CONFIRM_BUTTON_PORT = 1;
 
 Motor rollerL(LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 Motor rollerR(RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
@@ -23,6 +25,9 @@ Motor liftL(LEFT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor:
 Motor liftR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
 Motor tilter1(TILTER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+
+pros::ADIAnalogIn autonSwitch (SWITCH_PORT);
+pros::ADIAnalogIn confirmButton (CONFIRM_BUTTON_PORT);
 
 
 Controller joystick;
@@ -40,6 +45,7 @@ ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetA(ControllerDigital::A);
 ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
+
 
 
 auto chassis = ChassisControllerBuilder()
@@ -77,96 +83,9 @@ void initialize() {
 	liftR.tarePosition();
 	tilter1.tarePosition();
 
-
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.0_ft, 0_ft, 0_deg}
-		},
-		"A"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, -2.23_ft, 0_deg}
-		},
-		"B"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.4_ft, 0_ft, 0_deg}
-		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.8_ft, 0_ft, 0_deg}
-		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.8_ft, 2.5_ft, 0_deg}
-		},
-		"D"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.78_ft, 0_ft, 0_deg}
-		},
-		"E"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.5_ft, 0_ft, 0_deg}
-		},
-		"F"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0.95_ft, 0_deg}
-		},
-		"G"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
-		},
-		"H"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.0_ft, 0_ft, 0_deg}
-		},
-		"I"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
-		},
-		"J"
-	);
-
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.5_ft, 0_ft, 0_deg}
-		},
-		"Wall"
-	);
-
-
-
 	pros::lcd::initialize();
+
+	pros::lcd::set_text(1, "initialize()");
 }
 
 
@@ -333,7 +252,11 @@ void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
 		tilter(90);
 	} else if (trayUp.isPressed()) {
-		tilter(-85);
+		int vel = 76 + (300 + tilter1.getPosition()) * 0.08;
+		if (vel < 76) {
+			vel = 76;
+		}
+		tilter(-vel);
 	}
 	if (trayDown.changedToReleased() || trayUp.changedToReleased()) {
 		tilter(0);
@@ -386,7 +309,7 @@ void blue() {
 	turn(135_deg, 9);
 	runPath("H");
 
-	tilterPosition(-1000, -80);
+	tilterPosition(-1000, -76);
 	while (tilter1.getPosition() > -950) {
 		continue;
 	}
@@ -427,7 +350,7 @@ void opcontrol() {
 		presetControl();
 		driveControl();
 
-		pros::lcd::set_text(1, std::to_string(tilter1.getPosition()));
+		pros::lcd::set_text(1, std::to_string(tilter1.getTargetVelocity()));
 
 		pros::delay(20);
 	}
@@ -438,5 +361,125 @@ void opcontrol() {
  * Unused methods that are required by PROS. They might be used later.
 */
 void disabled() {}
-void competition_initialize() {}
+void competition_initialize() {
+
+	pros::lcd::set_text(2, "competition_initialize()");
+
+	// int auton = 0;
+	//
+	// autonSwitch.calibrate();
+	// confirmButton.calibrate();
+	//
+	//
+	// while(true) {
+	// 	if (abs(autonSwitch.get_value_calibrated()) > 3) {
+	// 		auton++;
+	// 		if (auton == 4) {
+	// 			auton = 0;
+	// 		}
+	// 		while (abs(autonSwitch.get_value_calibrated()) > 3) {
+	// 			pros::delay(20);
+	// 		}
+	// 	}
+	//
+	// 	if (abs(confirmButton.get_value_calibrated()) > 3) {
+	// 		break;
+	// 	}
+	//
+	// 	pros::lcd::set_text(1, std::to_string(autonSwitch.get_value()));
+	// 	pros::lcd::set_text(2, std::to_string(confirmButton.get_value()));
+	// 	pros::lcd::set_text(3, std::to_string(auton));
+	//
+	// 	pros::delay(20);
+	// }
+	//
+	//
+	// if (auton == 0 || auton == 1) {
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{3.0_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"A"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{2.8_ft, -2.23_ft, 0_deg}
+	// 		},
+	// 		"B"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{0.4_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"C"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{3.8_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"C"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{3.8_ft, 2.5_ft, 0_deg}
+	// 		},
+	// 		"D"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{1.78_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"E"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{2.5_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"F"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{2.0_ft, 0.95_ft, 0_deg}
+	// 		},
+	// 		"G"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{2.0_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"H"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{1.0_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"I"
+	// 	);
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{2.0_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"J"
+	// 	);
+	//
+	// 	profileController->generatePath(
+	// 		{
+	// 			{0_ft, 0_ft, 0_deg},
+	// 			{0.5_ft, 0_ft, 0_deg}
+	// 		},
+	// 		"Wall"
+	// 	);
+	// }
+}
 void on_center_button() {}
