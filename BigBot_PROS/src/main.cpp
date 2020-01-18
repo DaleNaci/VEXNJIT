@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int8_t LEFT_ROLLER_PORT = 8;
+int8_t LEFT_ROLLER_PORT = 9;
 int8_t RIGHT_ROLLER_PORT = 21;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
@@ -45,6 +45,7 @@ ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetA(ControllerDigital::A);
 ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
+ControllerButton presetLeft(ControllerDigital::left);
 
 
 
@@ -85,7 +86,114 @@ void initialize() {
 
 	pros::lcd::initialize();
 
-	pros::lcd::set_text(1, "initialize()");
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.0_ft, 0_ft, 0_deg}
+		},
+		"A"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.8_ft, -2.3_ft, 0_deg}
+		},
+		"B"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.4_ft, 0_ft, 0_deg}
+		},
+		"C"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 0_ft, 0_deg}
+		},
+		"C"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 2.5_ft, 0_deg}
+		},
+		"D"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.78_ft, 0_ft, 0_deg}
+		},
+		"E"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.5_ft, 0_ft, 0_deg}
+		},
+		"F"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0.95_ft, 0_deg}
+		},
+		"G"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"H"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.0_ft, 0_ft, 0_deg}
+		},
+		"I"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"J"
+	);
+
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.5_ft, 0_ft, 0_deg}
+		},
+		"Wall"
+	);
+
+
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.5_ft, 0_ft, 0_deg}
+		},
+		"1"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{5.0_ft, 0_ft, 0_deg}
+		},
+		"2"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.23_ft, 0_ft, 0_deg}
+		},
+		"3"
+	);
 }
 
 
@@ -186,6 +294,10 @@ void liftControl() {
 		lift(90);
 	} else if (liftDown.isPressed()) {
 		lift(-90);
+		if (liftL.getPosition() < 0) {
+			liftL.tarePosition();
+			liftR.tarePosition();
+		}
 	}
 
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
@@ -200,23 +312,26 @@ void liftControl() {
 */
 void presets(string preset) {
 	if (preset == "X") {
-		tilterPosition(-660, -100);
+		tilterPosition(-670, -100);
 		if (tilter1.getPosition() < -240) {
 			liftPosition(730, 100);
 		}
 	}
 	if (preset == "A") {
-		tilterPosition(-660, -100);
+		tilterPosition(-670, -100);
 		if (tilter1.getPosition() < -240) {
 			liftPosition(930, 100);
 		}
 	}
 	if (preset == "B") {
-		liftPosition(5, 100);
+		liftPosition(150, 100);
 		tilterPosition(0, 100);
 	}
 	if (preset == "Y") {
 		tilterPosition(0, 80);
+	}
+	if (preset == "Left") {
+		liftPosition(0, 100);
 	}
 }
 
@@ -239,6 +354,9 @@ void presetControl() {
 	if (presetY.isPressed()) {
 		presets("Y");
 	}
+	if (presetLeft.isPressed()) {
+		presets("Left");
+	}
 }
 
 
@@ -251,10 +369,13 @@ void presetControl() {
 void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
 		tilter(90);
+		if (tilter1.getPosition() > 0) {
+			tilter1.tarePosition();
+		}
 	} else if (trayUp.isPressed()) {
-		int vel = 76 + (300 + tilter1.getPosition()) * 0.08;
-		if (vel < 76) {
-			vel = 76;
+		int vel = 40 + (350 + tilter1.getPosition()) * 0.171;
+		if (vel < 40) {
+			vel = 40;
 		}
 		tilter(-vel);
 	}
@@ -299,24 +420,36 @@ void blue() {
 	runPath("B", true);
 	runPath("Wall", true);
 	runPath("C");
-	runPath("D", true);
-	rollers(0);
-	runPath("E");
-	turn(90_deg, 14);
-	runPath("F", true);
-	rollersPosition(110, 40);
-	runPath("G");
-	turn(135_deg, 9);
-	runPath("H");
+	// runPath("D", true);
+	// rollers(0);
+	// runPath("E");
+	// turn(90_deg, 14);
+	// runPath("F", true);
+	// rollersPosition(110, 40);
+	// runPath("G");
+	// turn(135_deg, 9);
+	// runPath("H");
 
-	tilterPosition(-1000, -76);
+	rollers(0);
+	// turn(-90_deg, 9);
+	// runPath("1");
+	// turn(-45_deg, 10);
+	turn(-131_deg, 9);
+	rollers(80);
+	pros::delay(200);
+	rollers(0);
+	runPath("2");
+	runPath("3", true);
+
+	tilterPosition(-1000, -50);
 	while (tilter1.getPosition() > -950) {
 		continue;
 	}
-	pros::delay(1400);
+	pros::delay(800);
 
 	runPath("I");
-	runPath("J");
+	runPath("I");
+	runPath("J", true);
 }
 
 
@@ -343,6 +476,8 @@ void autonomous() {
 
 
 void opcontrol() {
+	liftPosition(150, 100);
+
 	while(true) {
 		rollersControl();
 		liftControl();
