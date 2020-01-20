@@ -1,5 +1,6 @@
 #include "main.h"
-
+#define VISION_PORT 1
+#define EXAMPLE_SIG 1
 /**
  * A callback function for LLEMU's center button.
  *
@@ -10,9 +11,7 @@ void on_center_button() {
 	static bool pressed = false;
 	pressed = !pressed;
 	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
+
 	}
 }
 
@@ -24,7 +23,7 @@ void on_center_button() {
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
+	pros::lcd::set_text(1, "Computer FVision Test Program");
 
 	pros::lcd::register_btn1_cb(on_center_button);
 }
@@ -58,7 +57,9 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -74,19 +75,21 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
+	pros::Vision vision_sensor (VISION_PORT); //initializes the vision_sensor object at vision_port port
+  while (true) {
+    pros::vision_object_s_t rtn = vision_sensor.get_by_sig(0,1);//initialize signature object
 
-	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
+    // Gets the largest object
+    std::cout << "sig: " << rtn.signature;
+    if (rtn.signature == 255) std::cout << " " << errno;
 
-		left_mtr = left;
-		right_mtr = right;
-		pros::delay(20);
-	}
+		x = rtn.x_middle_coord;//x middle coordinate of the object with signature 1
+		y = rtn.y_middle_coord;//y middle coordinate of the object with signature 1
+
+		//Prints the center coordnates of the object with signature 1
+		pros::lcd::set_text(2, "X %d", x);
+		pros::lcd::set_text(3, "Y %d", y);
+
+		    pros::delay(2);
+  }
 }
