@@ -35,7 +35,7 @@ auto chassis = ChassisControllerBuilder()
 	).withDimensions(
 		AbstractMotor::gearset::green,
 		{
-			{6.1_in, 12.5_in},
+			{4.08_in, 8.1_in},
 			static_cast<int32_t>(imev5GreenTPR * 2.0)
 		}
 	).build();
@@ -46,9 +46,9 @@ auto timer = TimeUtilFactory::createDefault().getTimer();
 auto profileController = AsyncMotionProfileControllerBuilder()
 	.withLimits(
 		{
-			0.42,
-			0.8,
-			5.2
+			0.2,
+			1.4,
+			6.0
 		}
 	).withOutput(
 		chassis
@@ -60,12 +60,61 @@ void initialize() {
 	rollerR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilter1.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilter2.setBrakeMode(AbstractMotor::brakeMode::hold);
+
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.8_ft, 0_ft, 0_deg}
+		},
+		"A"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1_ft, 0_ft, 0_deg}
+		},
+		"B"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2_ft, 1.1_ft, 15_deg}
+		},
+		"C"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.6_ft, 0_ft, 0_deg}
+		},
+		"D"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.5_ft, -1_ft, 0_deg}
+		},
+		"E"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 0_ft, 0_deg}
+		},
+		"F"
+	);
 }
 
 
 void rollers(int speed) {
 	rollerL.moveVelocity(speed);
 	rollerR.moveVelocity(-speed);
+}
+
+
+void rollersPosition(int pos, int speed) {
+	rollerL.moveAbsolute(pos, speed);
+	rollerR.moveAbsolute(-pos, speed);
 }
 
 
@@ -76,8 +125,8 @@ void tilter(int speed) {
 
 
 void tilterPosition(int pos, int speed) {
-	tilter1.moveAbsolute(-pos, speed);
-	tilter2.moveAbsolute(pos, speed);
+	tilter1.moveAbsolute(pos, speed);
+	tilter2.moveAbsolute(-pos, speed);
 }
 
 
@@ -103,16 +152,6 @@ void tilterControl() {
 			tilter(0);
 		}
 	}
-
-	if (trayDown.changedToPressed()) {
-		auto timeChanged = timer->getDtFromMark();
-
-		if (0_ms < timeChanged && timeChanged < 1000_ms) {
-			tilterPosition(0, 100);
-		} else {
-			timer->placeMark();
-		}
-	}
 }
 
 
@@ -124,7 +163,40 @@ void driveControl() {
 }
 
 
-void autonomous() {}
+void runPath(string pathName, bool reversed=false, bool mirrored=false) {
+	profileController->setTarget(pathName, reversed, mirrored);
+	profileController->waitUntilSettled();
+}
+
+
+/**
+ * Turns the robot clockwise to a certain angle (angle) with a certain
+ * velocity (speed).
+*/
+void turn(QAngle angle, int speed) {
+	chassis->setMaxVelocity(speed * 2);
+	chassis->turnAngle(angle / 2.2);
+	chassis->setMaxVelocity(200);
+}
+
+
+void autonomous() {
+	rollersPosition(150, 80);
+	runPath("A");
+	tilterPosition(-200, 100);
+	pros::delay(1000);
+	tilterPosition(0, 100);
+
+	rollers(-100);
+	runPath("B");
+	runPath("C");
+	runPath("D");
+	runPath("E", true);
+	turn(-103_deg, 30);
+	runPath("F");
+	pros::delay(300);
+	rollers(0);
+}
 
 
 void opcontrol() {
