@@ -10,12 +10,12 @@ int8_t TILTER_LEFT_PORT = 15;
 int8_t TILTER_RIGHT_PORT = 16;
 
 //Arm Lift
-int8_t LEFT_LIFT_PORT = 2;
+int8_t LEFT_LIFT_PORT = 4;
 int8_t RIGHT_LIFT_PORT = 3;
 
 //Rollers
 int8_t ARM_LEFT_ROLLER_PORT = 10;
-int8_t ARM_RIGHT_ROLLER_PORT = 1;
+int8_t ARM_RIGHT_ROLLER_PORT = 5;
 int8_t TRAY_LEFT_ROLLER_PORT = 8;
 int8_t TRAY_RIGHT_ROLLER_PORT = 7;
 
@@ -70,7 +70,7 @@ ControllerButton liftOverride(ControllerDigital::A);
 
 ControllerButton presetA(ControllerDigital::Y);
 
-bool areArmsResetting = true;
+bool areArmsResetting = false;
 
 /**
  * These are the chassis variables that are used for the driver control
@@ -174,7 +174,7 @@ void initialize() {
 }
 
 bool areArmsAtStops() {
-	return armLStop.isPressed() || armRStop.isPressed();
+	return false;//armLStop.isPressed() || armRStop.isPressed();
 }
 
 bool isLiftOverrideActive(bool isAuton) {
@@ -196,20 +196,20 @@ void liftRaw(int speed) {
 
 void lift(int speed, bool isAuton) {
 	bool overrideCtrl = isLiftOverrideActive(isAuton);
-	
+
 	if(areArmsAtStops() && !overrideCtrl) {
 		speed = 0;
 		areArmsResetting = false;
 	}
-	
+
 	if(overrideCtrl) {
 		areArmsResetting = false;
 	}
-	
+
 	if(areArmsResetting && !overrideCtrl) {
 		speed = -30;
 	}
-	
+
 	liftRaw(speed);
 }
 
@@ -220,7 +220,7 @@ void lift(int speed, bool isAuton) {
  * button has priority.
 */
 void liftControl() {
-	int speed = 0;	
+	int speed = 0;
 	if (liftUp.isPressed()) {
 		speed = 90;
 	} else if (liftDown.isPressed()) {
@@ -230,7 +230,7 @@ void liftControl() {
 			armR.tarePosition();
 		}
 	}
-	
+
 	lift(speed, false);
 }
 
@@ -299,29 +299,29 @@ void rollersControl() {
 	} else if(intakeOut.isPressed()) {
 		speed = -100;
 	}
-	
+
 	int armPos = getLeftArmPos();
 	/*bool down = armPos < (ARM_POS_DOWN + ARM_MARGIN_OF_ERROR);
 	bool up = armPos > (ARM_POS_UP - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_UP + ARM_MARGIN_OF_ERROR);
 	bool back = armPos > (ARM_POS_BACK - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_BACK + ARM_MARGIN_OF_ERROR);
 	bool betweenUpAndBack = armPos > (ARM_POS_BACK + ARM_MARGIN_OF_ERROR * 2) && armPos < (ARM_POS_BACK - ARM_MARGIN_OF_ERROR * 2);*/
 	bool down = false, up = true, back = false, betweenUpAndBack = false;
-	
+
 	int speedArms = 0;
 	int speedTray = 0;
-	
+
 	if(down || up) {
 		speedArms = speed;
 	}
-	
+
 	if(betweenUpAndBack) {
 		speedArms = armL.getActualVelocity();
 	}
-	
+
 	if(down || back) {
 		speedTray = speed;
 	}
-	
+
 	rollersArms(speedArms);
 	rollersTray(speedTray);
 }
@@ -413,7 +413,7 @@ void waitForArmReset() {
 
 void deployTray(bool isAuton) {
 	if(areArmsAtStops()) {
-		
+
 	}
 }
 
@@ -423,8 +423,8 @@ void deployTray(bool isAuton) {
 void autonomous() {
 	waitForArmReset();
 	deployTray(true);
-	
-	
+
+
 	/*runPath("1", true);
 	runPath("2");*/
 }
