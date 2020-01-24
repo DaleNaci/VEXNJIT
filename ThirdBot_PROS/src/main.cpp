@@ -194,7 +194,7 @@ void liftRaw(int speed) {
 	armR.moveVelocity(-speed * 2);
 }
 
-void lift(int speed, bool isAuton) {
+void lift(int speed, bool isAuton=false) {
 	bool overrideCtrl = isLiftOverrideActive(isAuton);
 
 	if(areArmsAtStops() && !overrideCtrl) {
@@ -234,14 +234,11 @@ void liftControl() {
 	lift(speed, false);
 }
 
-void liftPos(int speed, int pos) {
+void liftPos(int pos, int speed) {
     armL.moveAbsolute(pos, speed);
     armR.moveAbsolute(-pos, speed);
 }
 
-void liftPreset(int pos) {
-	liftPos(80, pos);
-}
 
 /**
  * Moves both tray roller motors. Speed will depend on the speed parameter.
@@ -406,23 +403,37 @@ void turn(QAngle angle, int speed) {
 }
 
 void waitForArmReset() {
-	while(areArmsResetting) {
-		pros::delay(20);
+	// while(areArmsResetting) {
+	// 	pros::delay(20);
+	// }
+
+	while (!armLStop.isPressed() || !armRStop.isPressed()) {
+		if (armLStop.isPressed()) {
+			armL.moveVelocity(0);
+		}
+		if (armRStop.isPressed()) {
+			armR.moveVelocity(0);
+		}
 	}
 }
 
-void deployTray(bool isAuton) {
-	if(areArmsAtStops()) {
-
+void deployTray() {
+	rollersArms(-40);
+	liftPos(220, 30);
+	while (armL.getPosition() < 175) {
+		continue;
 	}
+	rollersArms(0);
+	lift(-30);
+	waitForArmReset();
 }
 
 /**
  * Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	waitForArmReset();
-	deployTray(true);
+	deployTray();
+
 
 
 	/*runPath("1", true);
