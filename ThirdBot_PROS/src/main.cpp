@@ -174,7 +174,7 @@ void initialize() {
 }
 
 bool areArmsAtStops() {
-	return armLStop.getValue() || armRStop.getValue();
+	return armLStop.isPressed() || armRStop.isPressed();
 }
 
 bool isLiftOverrideActive(bool isAuton) {
