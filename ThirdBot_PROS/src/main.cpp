@@ -39,8 +39,8 @@ Motor tilterR(TILTER_RIGHT_PORT, false, AbstractMotor::gearset::red, AbstractMot
 Motor armL(LEFT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 Motor armR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
-Motor rollerarmL(ARM_LEFT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
-Motor rollerarmR(ARM_RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rollerarmL(ARM_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rollerarmR(ARM_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
 Motor rollertrayL(TRAY_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor rollertrayR(TRAY_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
@@ -186,24 +186,12 @@ bool isLiftOverrideActive(bool isAuton) {
 }
 
 /**
- * Move the lift up or down, depending on the state of the up and down
- * buttons. If the up button is pressed, the tray will move upwards. If
- * the down button is pressed, the tray will move downwards. The up
- * button has priority.
+ * Moves the roller lift. Speed will depend on the speed parameter. The
+ * range is -100 to 100.
 */
-void liftControl() {
-	int speed = 0;	
-	if (liftUp.isPressed()) {
-		speed = 90;
-	} else if (liftDown.isPressed()) {
-		speed = -90;
-		if (armL.getPosition() < 0) {
-			armL.tarePosition();
-			armR.tarePosition();
-		}
-	}
-	
-	lift(speed, false);
+void liftRaw(int speed) {
+	armL.moveVelocity(speed * 2);
+	armR.moveVelocity(-speed * 2);
 }
 
 void lift(int speed, bool isAuton) {
@@ -226,12 +214,24 @@ void lift(int speed, bool isAuton) {
 }
 
 /**
- * Moves the roller lift. Speed will depend on the speed parameter. The
- * range is -100 to 100.
+ * Move the lift up or down, depending on the state of the up and down
+ * buttons. If the up button is pressed, the tray will move upwards. If
+ * the down button is pressed, the tray will move downwards. The up
+ * button has priority.
 */
-void liftRaw(int speed) {
-	armL.moveVelocity(speed * 2);
-	armR.moveVelocity(-speed * 2);
+void liftControl() {
+	int speed = 0;	
+	if (liftUp.isPressed()) {
+		speed = 90;
+	} else if (liftDown.isPressed()) {
+		speed = -90;
+		if (armL.getPosition() < 0) {
+			armL.tarePosition();
+			armR.tarePosition();
+		}
+	}
+	
+	lift(speed, false);
 }
 
 void liftPos(int speed, int pos) {
