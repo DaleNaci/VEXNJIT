@@ -113,7 +113,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, -2.1_ft, 0_deg}
+			{2.8_ft, -2.19_ft, 0_deg}
 		},
 		"B_blue"
 	);
@@ -148,14 +148,14 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.5_ft, 0_ft, 0_deg}
+			{1.7_ft, 0_ft, 0_deg}
 		},
 		"1"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{5.0_ft, 0_ft, 0_deg}
+			{4.0_ft, 0_ft, 0_deg}
 		},
 		"2"
 	);
@@ -490,7 +490,7 @@ void red() {
 
 	turn(90_deg, 9);
 
-	runPath("M");
+	runPath("1");
 
 	turn(45_deg, 9);
 
@@ -499,18 +499,18 @@ void red() {
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
-	//
-	// tilterPosition(-1000, -50);
-	// while (tilter1.getPosition() > -950) {
-	// 	continue;
-	// }
-	// pros::delay(800);
-	//
-	// runPath("I");
-	// runPath("I");
-	// runPath("J", true);
-	// pros::delay(500);
-	// turn(43_deg, 20);
+
+	tilterPosition(-1000, -50);
+	while (tilter1.getPosition() > -950) {
+		continue;
+	}
+	pros::delay(800);
+
+	runPath("I");
+	runPath("I");
+	runPath("J", true);
+	pros::delay(500);
+	turn(43_deg, 20);
 }
 
 
@@ -534,23 +534,23 @@ void blue() {
 
 	turn(-45_deg, 9);
 
-	rollers(80);
-	pros::delay(100);
+	rollers(40);
+	pros::delay(800);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
-	//
-	// tilterPosition(-1000, -50);
-	// while (tilter1.getPosition() > -950) {
-	// 	continue;
-	// }
-	// pros::delay(800);
-	//
-	// runPath("I");
-	// runPath("I");
-	// runPath("J", true);
-	// pros::delay(500);
-	// turn(-45_deg, 20);
+
+	tilterPosition(-1000, -40);
+	while (tilter1.getPosition() > -950) {
+		continue;
+	}
+	pros::delay(800);
+
+	runPath("I");
+	runPath("I");
+	runPath("J", true);
+	pros::delay(500);
+	turn(-45_deg, 20);
 }
 
 
