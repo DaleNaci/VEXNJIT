@@ -174,7 +174,7 @@ void initialize() {
  * the down button is pressed, the tray will move downwards. The up
  * button has priority.
 */
-void liftControl() {
+void armLiftControl() {
 	if (liftUp.isPressed()) {
 		lift(90);
 	} else if (liftDown.isPressed()) {
@@ -194,7 +194,7 @@ void liftControl() {
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
 */
-void lift(int speed) {
+void armLift(int speed) {
 	armL.moveVelocity(speed * 2);
 	armR.moveVelocity(-speed * 2);
 }
