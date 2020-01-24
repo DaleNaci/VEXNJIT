@@ -274,7 +274,8 @@ void tilterPosition(int pos, int speed) {
  * manipulator will intake, and if the down button is pressed, the
  * manipulator will outtake. The up button has priority. Also, if the
  * lift is up, the rollers will move at a slower speed in both
- * directions.
+ * directions. In addition, if the tilter is up, the rollers will move
+ * slowly in the outwards direction to make it easier to deposit stacks.
 */
 void rollersControl() {
 	if (liftL.getPosition() > 300) {
@@ -282,6 +283,14 @@ void rollersControl() {
 			rollers(56);
 		} else if (intakeOut.isPressed()) {
 			rollers(-40);
+		} else {
+			rollers(0);
+		}
+	} else if (tilter1.getPosition() < -180) {
+		if (intakeIn.isPressed()) {
+			rollers(100);
+		} else if (intakeOut.isPressed()) {
+			rollers(-20);
 		} else {
 			rollers(0);
 		}
