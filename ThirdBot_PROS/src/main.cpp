@@ -183,13 +183,8 @@ bool areArmsAtStops() {
  * the down button is pressed, the tray will move downwards. The up
  * button has priority.
 */
-<<<<<<< HEAD
-void armLiftControl() {
-=======
 void liftControl() {
-	int speed = 0;
-	
->>>>>>> 6238712f85451e0a485a9d5461c95f3aaa6484ae
+	int speed = 0;	
 	if (liftUp.isPressed()) {
 		speed = 90;
 	} else if (liftDown.isPressed()) {
@@ -220,11 +215,7 @@ void lift(int speed, bool overrideCtrl) {
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
 */
-<<<<<<< HEAD
-void armLift(int speed) {
-=======
 void liftRaw(int speed) {
->>>>>>> 6238712f85451e0a485a9d5461c95f3aaa6484ae
 	armL.moveVelocity(speed * 2);
 	armR.moveVelocity(-speed * 2);
 }
