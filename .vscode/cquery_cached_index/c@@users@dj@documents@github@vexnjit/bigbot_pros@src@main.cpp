@@ -2,8 +2,11 @@
 
 using namespace std;
 
-int8_t LEFT_ROLLER_PORT = 9;
-int8_t RIGHT_ROLLER_PORT = 21;
+/**
+ * These are the variable constants for the ports.
+*/
+int8_t LEFT_ROLLER_PORT = 11;
+int8_t RIGHT_ROLLER_PORT = 3;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
 int8_t TILTER_PORT = 15;
@@ -18,6 +21,11 @@ int8_t RIGHT_DRIVE_4_PORT = 7;
 int SWITCH_PORT = 8;
 int CONFIRM_BUTTON_PORT = 1;
 
+
+/**
+ * These are the different motor variables that are used to move
+ * different parts of the robot.
+*/
 Motor rollerL(LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 Motor rollerR(RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
@@ -26,10 +34,11 @@ Motor liftR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor
 
 Motor tilter1(TILTER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
-pros::ADIAnalogIn autonSwitch (SWITCH_PORT);
-pros::ADIAnalogIn confirmButton (CONFIRM_BUTTON_PORT);
 
-
+/**
+ * These are the variables that are used to configure controller inputs
+ * to perform various tasks for the robot.
+*/
 Controller joystick;
 
 ControllerButton intakeIn(ControllerDigital::L1);
@@ -48,7 +57,10 @@ ControllerButton presetY(ControllerDigital::Y);
 ControllerButton presetLeft(ControllerDigital::left);
 
 
-
+/**
+ * These are the chassis variables that are used for the driver control
+ * period and the autonomous period.
+*/
 auto chassis = ChassisControllerBuilder()
 	.withMotors(
 		{LEFT_DRIVE_1_PORT, static_cast<int8_t>(-LEFT_DRIVE_2_PORT), static_cast<int8_t>(-LEFT_DRIVE_3_PORT), LEFT_DRIVE_4_PORT},
@@ -73,6 +85,11 @@ auto profileController = AsyncMotionProfileControllerBuilder()
 	).buildMotionProfileController();
 
 
+/**
+ * This code is used at the beginning, when the program starts.
+ * This function is mainly used to set up motor brakemodes and encoders,
+ * and then generate paths (2D motion profiling) for auton.
+*/
 void initialize() {
 	liftL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	liftR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -84,7 +101,7 @@ void initialize() {
 	liftR.tarePosition();
 	tilter1.tarePosition();
 
-	pros::lcd::initialize();
+
 
 	profileController->generatePath(
 		{
@@ -96,74 +113,31 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
+			{2.8_ft, -2.1_ft, 0_deg}
+		},
+		"B_blue"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
 			{2.8_ft, -2.3_ft, 0_deg}
 		},
-		"B"
+		"B_red"
 	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.4_ft, 0_ft, 0_deg}
-		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.8_ft, 0_ft, 0_deg}
-		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.8_ft, 2.5_ft, 0_deg}
-		},
-		"D"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.78_ft, 0_ft, 0_deg}
-		},
-		"E"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.5_ft, 0_ft, 0_deg}
-		},
-		"F"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0.95_ft, 0_deg}
-		},
-		"G"
-	);
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{3.8_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"C"
+	// );
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
 			{2.0_ft, 0_ft, 0_deg}
 		},
-		"H"
+		"C"
 	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.0_ft, 0_ft, 0_deg}
-		},
-		"I"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
-		},
-		"J"
-	);
-
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
@@ -171,8 +145,6 @@ void initialize() {
 		},
 		"Wall"
 	);
-
-
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
@@ -190,9 +162,44 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.23_ft, 0_ft, 0_deg}
+			{0.24_ft, 0_ft, 0_deg}
 		},
 		"3"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.0_ft, 0_ft, 0_deg}
+		},
+		"I"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
+		},
+		"J"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.3_ft, 0_ft, 0_deg}
+		},
+		"K"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{1.0_ft, 0_ft, 0_deg}
+		},
+		"L"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.25_ft, 0_ft, 0_deg}
+		},
+		"M"
 	);
 }
 
@@ -207,6 +214,11 @@ void rollers(int speed) {
 }
 
 
+/**
+ * Moves the roller lift to a specific relative position. Position will
+ * depend on the pos parameter. Speed will depend on the speed
+ * parameter.
+*/
 void rollersPosition(int pos, int speed) {
 	rollerL.tarePosition();
 	rollerR.tarePosition();
@@ -260,7 +272,9 @@ void tilterPosition(int pos, int speed) {
  * Moves the rollers to intake and outtake depending on the state of
  * the up and down buttons. If the up button is pressed, the
  * manipulator will intake, and if the down button is pressed, the
- * manipulator will outtake. The up button has priority.
+ * manipulator will outtake. The up button has priority. Also, if the
+ * lift is up, the rollers will move at a slower speed in both
+ * directions.
 */
 void rollersControl() {
 	if (liftL.getPosition() > 300) {
@@ -337,9 +351,7 @@ void presets(string preset) {
 
 
 /**
- * Moves the lift to a specific height, depending on the button pressed
- * in the XYAB button mapping. If there is a significant difference
- * between the two arms, they will stop and automatically re-align.
+ * Moves the lift to a specific height, depending on the button pressed.
 */
 void presetControl() {
 	if (presetX.isPressed()) {
@@ -364,7 +376,10 @@ void presetControl() {
  * Move the tray up or down, depending on the state of the up and down
  * buttons. If the up button is pressed, the tray will move upwards. If
  * the down button is pressed, the tray will move downwards. The up
- * button has priority.
+ * button has priority. When the tray is moving up, the closer it is to
+ * its resting position, the faster it will be. Once it reaches a
+ * certain point in its range of motion, it is capped at a maximum
+ * velocity.
 */
 void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
@@ -385,6 +400,11 @@ void tilterControl() {
 }
 
 
+/**
+ * This runs the drive on an arcade control setup. The left vertical
+ * axis moves the drive up and down, while the right horizontal axis
+ * point the drive left and right.
+*/
 void driveControl() {
 	chassis->getModel()->arcade(
 		joystick.getAnalog(ControllerAnalog::leftY),
@@ -403,40 +423,145 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
+
+/**
+ * Runs the path (pathName). It can take in the "reversed" and
+ * "mirrored," but by default it treats both of them as false. This
+ * function will hold the code in place until it successfully reaches
+ * its target.
+*/
 void runPath(string pathName, bool reversed=false, bool mirrored=false) {
 	profileController->setTarget(pathName, reversed, mirrored);
 	profileController->waitUntilSettled();
 }
 
 
+/**
+ * Calling this function runs the red auton.
+*/
 void red() {
+	// rollers(-100);
+	// runPath("A");
+	// runPath("B_red", true, true);
+	// runPath("Wall", true);
+	// runPath("C");
+	//
+	// pros::delay(1200);
+	//
+	// rollers(0);
+	//
+	// turn(130_deg, 9);
+	// rollers(80);
+	// pros::delay(100);
+	// rollers(0);
+	// runPath("2");
+	// runPath("3", true);
 
+	// tilterPosition(-1000, -50);
+	// while (tilter1.getPosition() > -950) {
+	// 	continue;
+	// }
+	// pros::delay(800);
+	//
+	// runPath("I");
+	// runPath("I");
+	// runPath("J", true);
+	// pros::delay(500);
+	// turn(45_deg, 20);
+
+	rollers(-100);
+	runPath("A");
+	runPath("B_red", true, true);
+	runPath("Wall", true);
+	runPath("C");
+
+	pros::delay(1200);
+
+	rollers(0);
+
+	turn(90_deg, 9);
+
+	runPath("M");
+
+	turn(45_deg, 9);
+
+	rollers(80);
+	pros::delay(100);
+	rollers(0);
+	runPath("2");
+	runPath("3", true);
+	//
+	// tilterPosition(-1000, -50);
+	// while (tilter1.getPosition() > -950) {
+	// 	continue;
+	// }
+	// pros::delay(800);
+	//
+	// runPath("I");
+	// runPath("I");
+	// runPath("J", true);
+	// pros::delay(500);
+	// turn(43_deg, 20);
 }
 
 
+/**
+ * Calling this function runs the blue auton.
+*/
 void blue() {
 	rollers(-100);
 	runPath("A");
-	runPath("B", true);
+	runPath("B_blue", true);
 	runPath("Wall", true);
 	runPath("C");
-	// runPath("D", true);
-	// rollers(0);
-	// runPath("E");
-	// turn(90_deg, 14);
-	// runPath("F", true);
-	// rollersPosition(110, 40);
-	// runPath("G");
-	// turn(135_deg, 9);
-	// runPath("H");
+
+	pros::delay(1200);
 
 	rollers(0);
-	// turn(-90_deg, 9);
-	// runPath("1");
-	// turn(-45_deg, 10);
+
+	turn(-90_deg, 9);
+
+	runPath("M");
+
+	turn(-45_deg, 9);
+
+	rollers(80);
+	pros::delay(100);
+	rollers(0);
+	runPath("2");
+	runPath("3", true);
+	//
+	// tilterPosition(-1000, -50);
+	// while (tilter1.getPosition() > -950) {
+	// 	continue;
+	// }
+	// pros::delay(800);
+	//
+	// runPath("I");
+	// runPath("I");
+	// runPath("J", true);
+	// pros::delay(500);
+	// turn(-45_deg, 20);
+}
+
+
+/**
+ * Calling this function runs programming skills.
+*/
+void progSkills() {
+	rollers(-100);
+	runPath("A");
+	runPath("B_red", true);
+	runPath("Wall", true);
+	runPath("C");
+
+	pros::delay(1200);
+
+	rollers(0);
+
 	turn(-131_deg, 9);
 	rollers(80);
-	pros::delay(200);
+	pros::delay(100);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -450,42 +575,75 @@ void blue() {
 	runPath("I");
 	runPath("I");
 	runPath("J", true);
+	turn(-131_deg, 12);
+	presets("B");
+	rollers(-100);
+	runPath("K");
+	runPath("L", true);
+	rollers(100);
+	pros::delay(300);
+	rollers(0);
+	presets("A");
+	pros::delay(1500);
+	presets("A");
+	pros::delay(1200);
+	runPath("M");
+	rollers(50);
+	pros::delay(1000);
+	presets("B");
 }
 
 
+/**
+ * This is a test auton that is not intended to be used during the
+ * competition. This is only for testing purposes.
+*/
 void testAuton() {
-	rollersPosition(100, 30);
+
 }
 
 
+/**
+ * This is the "control" function that picks the auton depending on the
+ * given parameter (selected).
+*/
 void autonSelect(string selected) {
+	pros::lcd::set_text(1, selected);
+
 	if (selected == "red") {
 		red();
 	} else if (selected == "blue") {
 		blue();
+	} else if (selected == "prog") {
+		progSkills();
 	} else if (selected == "test") {
 		testAuton();
 	}
 }
 
 
+/**
+ * This function is called by the competition switch, and will call the
+ * autonSelect() function to have that select the correct auton.
+*/
 void autonomous() {
 	string SELECTED_AUTON = "blue";
 	autonSelect(SELECTED_AUTON);
 }
 
 
+/**
+ * This function is called by the competition switch, and will call all
+ * of the control functions that are used during the driver control
+ * period.
+*/
 void opcontrol() {
-	liftPosition(150, 100);
-
 	while(true) {
 		rollersControl();
 		liftControl();
 		tilterControl();
 		presetControl();
 		driveControl();
-
-		pros::lcd::set_text(1, std::to_string(tilter1.getTargetVelocity()));
 
 		pros::delay(20);
 	}
@@ -496,125 +654,5 @@ void opcontrol() {
  * Unused methods that are required by PROS. They might be used later.
 */
 void disabled() {}
-void competition_initialize() {
-
-	pros::lcd::set_text(2, "competition_initialize()");
-
-	// int auton = 0;
-	//
-	// autonSwitch.calibrate();
-	// confirmButton.calibrate();
-	//
-	//
-	// while(true) {
-	// 	if (abs(autonSwitch.get_value_calibrated()) > 3) {
-	// 		auton++;
-	// 		if (auton == 4) {
-	// 			auton = 0;
-	// 		}
-	// 		while (abs(autonSwitch.get_value_calibrated()) > 3) {
-	// 			pros::delay(20);
-	// 		}
-	// 	}
-	//
-	// 	if (abs(confirmButton.get_value_calibrated()) > 3) {
-	// 		break;
-	// 	}
-	//
-	// 	pros::lcd::set_text(1, std::to_string(autonSwitch.get_value()));
-	// 	pros::lcd::set_text(2, std::to_string(confirmButton.get_value()));
-	// 	pros::lcd::set_text(3, std::to_string(auton));
-	//
-	// 	pros::delay(20);
-	// }
-	//
-	//
-	// if (auton == 0 || auton == 1) {
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{3.0_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"A"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{2.8_ft, -2.23_ft, 0_deg}
-	// 		},
-	// 		"B"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{0.4_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"C"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{3.8_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"C"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{3.8_ft, 2.5_ft, 0_deg}
-	// 		},
-	// 		"D"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{1.78_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"E"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{2.5_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"F"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{2.0_ft, 0.95_ft, 0_deg}
-	// 		},
-	// 		"G"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{2.0_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"H"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{1.0_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"I"
-	// 	);
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{2.0_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"J"
-	// 	);
-	//
-	// 	profileController->generatePath(
-	// 		{
-	// 			{0_ft, 0_ft, 0_deg},
-	// 			{0.5_ft, 0_ft, 0_deg}
-	// 		},
-	// 		"Wall"
-	// 	);
-	// }
-}
+void competition_initialize() {}
 void on_center_button() {}
