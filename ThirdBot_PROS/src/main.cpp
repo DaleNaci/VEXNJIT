@@ -25,6 +25,8 @@ int8_t LEFT_BACK_DRIVE_PORT = 14;
 int8_t RIGHT_FRONT_DRIVE_PORT = 6;
 int8_t RIGHT_BACK_DRIVE_PORT = 13;
 
+int8_t ARM_LEFT_STOP_SWITCH_PORT = 8;
+int8_t ARM_RIGHT_STOP_SWITCH_PORT = 7;
 
 
 /**
@@ -48,6 +50,8 @@ Motor driveBL(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, Abstra
 Motor driveFR(RIGHT_FRONT_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveBR(RIGHT_BACK_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
+ADIDigitalIn armLStop(ARM_LEFT_STOP_SWITCH_PORT);
+ADIDigitalIn armRStop(ARM_RIGHT_STOP_SWITCH_PORT);
 
 /**
  * These are the variables that are used to configure controller inputs
@@ -62,10 +66,11 @@ ControllerButton trayUp(ControllerDigital::R1);
 
 ControllerButton liftUp(ControllerDigital::up);
 ControllerButton liftDown(ControllerDigital::down);
+ControllerButton liftOverride(ControllerDigital::A);
 
 ControllerButton presetA(ControllerDigital::Y);
 
-
+bool areArmsResetting = true;
 
 /**
  * These are the chassis variables that are used for the driver control
@@ -168,57 +173,88 @@ void initialize() {
 	);
 }
 
+bool areArmsAtStops() {
+	return armLStop.getValue() || armRStop.getValue();
+}
+
 /**
  * Move the lift up or down, depending on the state of the up and down
  * buttons. If the up button is pressed, the tray will move upwards. If
  * the down button is pressed, the tray will move downwards. The up
  * button has priority.
 */
+<<<<<<< HEAD
 void armLiftControl() {
+=======
+void liftControl() {
+	int speed = 0;
+	
+>>>>>>> 6238712f85451e0a485a9d5461c95f3aaa6484ae
 	if (liftUp.isPressed()) {
-		lift(90);
+		speed = 90;
 	} else if (liftDown.isPressed()) {
-		lift(-90);
+		speed = -90;
 		if (liftL.getPosition() < 0) {
 			liftL.tarePosition();
 			liftR.tarePosition();
 		}
 	}
+	
+	lift(speed, liftOverride.isPressed());
+}
 
-	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
-		lift(0);
+void lift(int speed, bool overrideCtrl) {
+	if(areArmsResetting && !overrideCtrl) {
+		speed = -30;
 	}
+	
+	if(areArmsAtStops() && !overrideCtrl) {
+		speed = 0;
+		areArmsResetting = false;
+	}
+	
+	liftRaw(speed);
 }
 
 /**
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
 */
+<<<<<<< HEAD
 void armLift(int speed) {
+=======
+void liftRaw(int speed) {
+>>>>>>> 6238712f85451e0a485a9d5461c95f3aaa6484ae
 	armL.moveVelocity(speed * 2);
 	armR.moveVelocity(-speed * 2);
 }
 
+void liftPos(int speed, int pos) {
+    armL.moveAbsolute(pos, speed);
+    armR.moveAbsolute(-pos, speed);
+}
+
+void liftPreset(int pos) {
+	liftPos(80, pos);
+}
+
 /**
- * Moves both roller motors. Speed will depend on the speed parameter.
+ * Moves both tray roller motors. Speed will depend on the speed parameter.
  * The range is -100 to 100.
 */
-void rollers(int speed) {
+void rollersTray(int speed) {
 	rollertrayL.moveVelocity(speed);
 	rollertrayR.moveVelocity(-speed);
 }
 
-
 /**
- * Moves the roller lift to a specific relative position. Position will
- * depend on the pos parameter. Speed will depend on the speed
- * parameter.
+ * Moves both arm roller motors. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
 */
-void rollersPosition(int pos, int speed) {
-	rollertrayL.moveAbsolute(pos, speed);
-	rollertrayR.moveAbsolute(-pos, speed);
+void rollersArms(int speed) {
+	rollerarmL.moveVelocity(speed);
+	rollerarmR.moveVelocity(-speed);
 }
-
 
 /**
  * Moves the tilter. Speed will depend on the speed parameter. The range
@@ -241,6 +277,9 @@ void tilterPosition(int pos, int speed) {
 	tilterL.moveAbsolute(-pos, speed);
 }
 
+int getLeftArmPos() {
+	return rollerarmL.getPosition();
+}
 
 /**
  * Moves the rollers to intake and outtake depending on the state of
@@ -249,13 +288,37 @@ void tilterPosition(int pos, int speed) {
  * manipulator will outtake. The up button has priority.
 */
 void rollersControl() {
-	if (intakeIn.isPressed()) {
-		rollers(100);
-	} else if (intakeOut.isPressed()) {
-		rollers(-100);
-	} else {
-		rollers(0);
+	int speed = 0;
+	if(intakeIn.isPressed()) {
+		speed = 100;
+	} else if(intakeOut.isPressed()) {
+		speed = -100;
 	}
+	
+	int armPos = getLeftArmPos();
+	/*bool down = armPos < (ARM_POS_DOWN + ARM_MARGIN_OF_ERROR);
+	bool up = armPos > (ARM_POS_UP - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_UP + ARM_MARGIN_OF_ERROR);
+	bool back = armPos > (ARM_POS_BACK - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_BACK + ARM_MARGIN_OF_ERROR);
+	bool betweenUpAndBack = armPos > (ARM_POS_BACK + ARM_MARGIN_OF_ERROR * 2) && armPos < (ARM_POS_BACK - ARM_MARGIN_OF_ERROR * 2);*/
+	bool down = false, up = true, back = false, betweenUpAndBack = false;
+	
+	int speedArms = 0;
+	int speedTray = 0;
+	
+	if(down || up) {
+		speedArms = speed;
+	}
+	
+	if(betweenUpAndBack) {
+		speedArms = armL.getVelocity();
+	}
+	
+	if(down || back) {
+		speedTray = speed;
+	}
+	
+	rollersArms(speedArms);
+	rollersTray(speedTray);
 }
 
 
@@ -342,8 +405,12 @@ void turn(QAngle angle, int speed) {
  * Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	runPath("1", true);
-	runPath("2");
+	while(areArmsResetting) {
+		pros::delay(20);
+	}
+	
+	/*runPath("1", true);
+	runPath("2");*/
 }
 
 /**
@@ -353,8 +420,8 @@ void autonomous() {
 */
 void opcontrol() {
 	while (true) {
-		rollersControl();
 		liftControl();
+		rollersControl();
 		tilterControl();
 		driveControl();
 
