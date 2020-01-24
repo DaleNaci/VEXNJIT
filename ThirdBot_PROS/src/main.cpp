@@ -207,7 +207,7 @@ void liftControl() {
 }
 
 void lift(int speed, bool isAuton) {
-	bool noOverride = isLiftOverrideActive(isAuton);
+	bool overrideCtrl = isLiftOverrideActive(isAuton);
 	
 	if(areArmsAtStops() && !overrideCtrl) {
 		speed = 0;
