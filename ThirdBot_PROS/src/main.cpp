@@ -177,6 +177,14 @@ bool areArmsAtStops() {
 	return armLStop.getValue() || armRStop.getValue();
 }
 
+bool isLiftOverrideActive(bool isAuton) {
+	if(isAuton) {
+		return false;
+	} else {
+		return liftOverride.isPressed();
+	}
+}
+
 /**
  * Move the lift up or down, depending on the state of the up and down
  * buttons. If the up button is pressed, the tray will move upwards. If
@@ -195,17 +203,23 @@ void liftControl() {
 		}
 	}
 	
-	lift(speed, liftOverride.isPressed());
+	lift(speed, false);
 }
 
-void lift(int speed, bool overrideCtrl) {
-	if(areArmsResetting && !overrideCtrl) {
-		speed = -30;
-	}
+void lift(int speed, bool isAuton) {
+	bool noOverride = isLiftOverrideActive(isAuton);
 	
 	if(areArmsAtStops() && !overrideCtrl) {
 		speed = 0;
 		areArmsResetting = false;
+	}
+	
+	if(overrideCtrl) {
+		areArmsResetting = false;
+	}
+	
+	if(areArmsResetting && !overrideCtrl) {
+		speed = -30;
 	}
 	
 	liftRaw(speed);
@@ -391,14 +405,25 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
+void waitForArmReset() {
+	while(areArmsResetting) {
+		pros::delay(20);
+	}
+}
+
+void deployTray(bool isAuton) {
+	if(areArmsAtStops()) {
+		
+	}
+}
 
 /**
  * Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	while(areArmsResetting) {
-		pros::delay(20);
-	}
+	waitForArmReset();
+	deployTray(true);
+	
 	
 	/*runPath("1", true);
 	runPath("2");*/
