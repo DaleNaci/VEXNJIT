@@ -197,9 +197,9 @@ void liftControl() {
 		speed = 90;
 	} else if (liftDown.isPressed()) {
 		speed = -90;
-		if (liftL.getPosition() < 0) {
-			liftL.tarePosition();
-			liftR.tarePosition();
+		if (armL.getPosition() < 0) {
+			armL.tarePosition();
+			armR.tarePosition();
 		}
 	}
 	
@@ -315,7 +315,7 @@ void rollersControl() {
 	}
 	
 	if(betweenUpAndBack) {
-		speedArms = armL.getVelocity();
+		speedArms = armL.getActualVelocity();
 	}
 	
 	if(down || back) {
