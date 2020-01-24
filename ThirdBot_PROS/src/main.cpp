@@ -110,6 +110,8 @@ void initialize() {
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterL.setBrakeMode(AbstractMotor::brakeMode::hold);
+	armL.setBrakeMode(AbstractMotor::brakeMode::hold);
+	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 
 	tilterR.tarePosition();
 	tilterL.tarePosition();
@@ -189,7 +191,8 @@ bool isLiftOverrideActive(bool isAuton) {
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
 */
-void liftRaw(int speed) {
+void
+Raw(int speed) {
 	armL.moveVelocity(speed * 2);
 	armR.moveVelocity(-speed * 2);
 }
@@ -222,9 +225,9 @@ void lift(int speed, bool isAuton=false) {
 void liftControl() {
 	int speed = 0;
 	if (liftUp.isPressed()) {
-		speed = 90;
+		speed = 5;
 	} else if (liftDown.isPressed()) {
-		speed = -90;
+		speed = -5;
 		if (armL.getPosition() < 0) {
 			armL.tarePosition();
 			armR.tarePosition();
@@ -254,8 +257,8 @@ void rollersTray(int speed) {
  * The range is -100 to 100.
 */
 void rollersArms(int speed) {
-	rollerarmL.moveVelocity(speed);
-	rollerarmR.moveVelocity(-speed);
+	rollerarmL.moveVelocity(-speed);
+	rollerarmR.moveVelocity(speed);
 }
 
 /**
@@ -302,7 +305,7 @@ void rollersControl() {
 	bool up = armPos > (ARM_POS_UP - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_UP + ARM_MARGIN_OF_ERROR);
 	bool back = armPos > (ARM_POS_BACK - ARM_MARGIN_OF_ERROR) && armPos < (ARM_POS_BACK + ARM_MARGIN_OF_ERROR);
 	bool betweenUpAndBack = armPos > (ARM_POS_BACK + ARM_MARGIN_OF_ERROR * 2) && armPos < (ARM_POS_BACK - ARM_MARGIN_OF_ERROR * 2);*/
-	bool down = false, up = true, back = false, betweenUpAndBack = false;
+	bool down = true, up = false, back = false, betweenUpAndBack = false;
 
 	int speedArms = 0;
 	int speedTray = 0;
