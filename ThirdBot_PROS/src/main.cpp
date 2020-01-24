@@ -50,8 +50,8 @@ Motor driveBL(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, Abstra
 Motor driveFR(RIGHT_FRONT_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveBR(RIGHT_BACK_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
-ADIDigitalIn armLStop(ARM_LEFT_STOP_SWITCH_PORT);
-ADIDigitalIn armRStop(ARM_RIGHT_STOP_SWITCH_PORT);
+ADIButton armLStop(ARM_LEFT_STOP_SWITCH_PORT);
+ADIButton armRStop(ARM_RIGHT_STOP_SWITCH_PORT);
 
 /**
  * These are the variables that are used to configure controller inputs
