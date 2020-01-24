@@ -141,6 +141,13 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
+			{3.8_ft, 0_ft, 0_deg}
+		},
+		"C_prog"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
 			{0.5_ft, 0_ft, 0_deg}
 		},
 		"Wall"
@@ -183,7 +190,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.3_ft, 0_ft, 0_deg}
+			{2.22_ft, 0_ft, 0_deg}
 		},
 		"K"
 	);
@@ -197,7 +204,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.25_ft, 0_ft, 0_deg}
+			{1.2_ft, 0_ft, 0_deg}
 		},
 		"M"
 	);
@@ -449,42 +456,11 @@ void runPath(string pathName, bool reversed=false, bool mirrored=false) {
  * Calling this function runs the red auton.
 */
 void red() {
-	// rollers(-100);
-	// runPath("A");
-	// runPath("B_red", true, true);
-	// runPath("Wall", true);
-	// runPath("C");
-	//
-	// pros::delay(1200);
-	//
-	// rollers(0);
-	//
-	// turn(130_deg, 9);
-	// rollers(80);
-	// pros::delay(100);
-	// rollers(0);
-	// runPath("2");
-	// runPath("3", true);
-
-	// tilterPosition(-1000, -50);
-	// while (tilter1.getPosition() > -950) {
-	// 	continue;
-	// }
-	// pros::delay(800);
-	//
-	// runPath("I");
-	// runPath("I");
-	// runPath("J", true);
-	// pros::delay(500);
-	// turn(45_deg, 20);
-
 	rollers(-100);
 	runPath("A");
 	runPath("B_red", true, true);
 	runPath("Wall", true);
 	runPath("C");
-
-	pros::delay(1200);
 
 	rollers(0);
 
@@ -494,8 +470,8 @@ void red() {
 
 	turn(45_deg, 9);
 
-	rollers(80);
-	pros::delay(100);
+	rollers(41);
+	pros::delay(1000);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -511,6 +487,8 @@ void red() {
 	runPath("J", true);
 	pros::delay(500);
 	turn(43_deg, 20);
+
+	liftPosition(0, 100);
 }
 
 
@@ -524,7 +502,6 @@ void blue() {
 	runPath("Wall", true);
 	runPath("C");
 
-	pros::delay(1200);
 
 	rollers(0);
 
@@ -534,8 +511,8 @@ void blue() {
 
 	turn(-45_deg, 9);
 
-	rollers(40);
-	pros::delay(800);
+	rollers(41);
+	pros::delay(1000);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -551,6 +528,8 @@ void blue() {
 	runPath("J", true);
 	pros::delay(500);
 	turn(-45_deg, 20);
+
+	liftPosition(0, 100);
 }
 
 
@@ -562,15 +541,13 @@ void progSkills() {
 	runPath("A");
 	runPath("B_red", true);
 	runPath("Wall", true);
-	runPath("C");
-
-	pros::delay(1200);
+	runPath("C_prog");
 
 	rollers(0);
 
 	turn(-131_deg, 9);
-	rollers(80);
-	pros::delay(100);
+	rollers(41);
+	pros::delay(1000);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -584,7 +561,7 @@ void progSkills() {
 	runPath("I");
 	runPath("I");
 	runPath("J", true);
-	turn(-131_deg, 12);
+	turn(-146_deg, 12);
 	presets("B");
 	rollers(-100);
 	runPath("K");
@@ -600,6 +577,7 @@ void progSkills() {
 	rollers(50);
 	pros::delay(1000);
 	presets("B");
+	rollers(0);
 }
 
 
@@ -636,7 +614,7 @@ void autonSelect(string selected) {
  * autonSelect() function to have that select the correct auton.
 */
 void autonomous() {
-	string SELECTED_AUTON = "blue";
+	string SELECTED_AUTON = "prog";
 	autonSelect(SELECTED_AUTON);
 }
 

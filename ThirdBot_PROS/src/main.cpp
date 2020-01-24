@@ -68,7 +68,9 @@ ControllerButton liftUp(ControllerDigital::up);
 ControllerButton liftDown(ControllerDigital::down);
 ControllerButton liftOverride(ControllerDigital::A);
 
-ControllerButton presetA(ControllerDigital::Y);
+ControllerButton presetY(ControllerDigital::Y);
+ControllerButton presetX(ControllerDigital::X);
+ControllerButton presetB(ControllerDigital::B);
 
 bool areArmsResetting = false;
 
@@ -237,7 +239,7 @@ void liftControl() {
 	lift(speed, false);
 }
 
-void liftPos(int pos, int speed) {
+void liftPosition(int pos, int speed) {
     armL.moveAbsolute(pos, speed);
     armR.moveAbsolute(-pos, speed);
 }
@@ -368,8 +370,18 @@ void driveControl() {
  * parameter, preset. Each preset will call different functions.
 */
 void presets(string preset) {
-	if (preset == "A") {
-		tilterPosition(0, 100);
+	if (preset == "B") {
+		if (tilterR.getPosition() > 20) {
+			tilterPosition(0, 100);
+		} else {
+			liftPosition(0, 100);
+		}
+	}
+	if (preset == "X") {
+		liftPosition(220, 100);
+	}
+	if (preset == "Y") {
+		liftPosition(160, 100);
 	}
 }
 
@@ -377,8 +389,14 @@ void presets(string preset) {
  * Moves the lift to a specific height, depending on the button pressed.
 */
 void presetControl() {
-	if (presetA.isPressed()) {
-		presets("A");
+	if (presetY.isPressed()) {
+		presets("Y");
+	}
+	if (presetX.isPressed()) {
+		presets("X");
+	}
+	if (presetB.isPressed()) {
+		presets("B");
 	}
 }
 
@@ -422,7 +440,7 @@ void waitForArmReset() {
 
 void deployTray() {
 	rollersArms(-40);
-	liftPos(220, 30);
+	liftPosition(220, 30);
 	while (armL.getPosition() < 175) {
 		continue;
 	}
@@ -436,11 +454,8 @@ void deployTray() {
 */
 void autonomous() {
 	deployTray();
-
-
-
-	/*runPath("1", true);
-	runPath("2");*/
+	armL.tarePosition();
+	armR.tarePosition();
 }
 
 /**
