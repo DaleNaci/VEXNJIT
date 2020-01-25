@@ -190,7 +190,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.22_ft, 0_ft, 0_deg}
+			{2.5_ft, 0_ft, 0_deg}
 		},
 		"K"
 	);
@@ -204,7 +204,7 @@ void initialize() {
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.2_ft, 0_ft, 0_deg}
+			{0.85_ft, 0_ft, 0_deg}
 		},
 		"M"
 	);
@@ -547,7 +547,7 @@ void progSkills() {
 
 	turn(-131_deg, 9);
 	rollers(41);
-	pros::delay(1000);
+	pros::delay(820);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -561,12 +561,17 @@ void progSkills() {
 	runPath("I");
 	runPath("I");
 	runPath("J", true);
-	turn(-146_deg, 12);
+	turn(-135_deg, 12);
 	presets("B");
+	pros::delay(1000);
 	rollers(-100);
 	runPath("K");
 	runPath("L", true);
 	rollers(100);
+	pros::delay(300);
+	rollers(0);
+	pros::delay(100);
+	rollers(30);
 	pros::delay(300);
 	rollers(0);
 	presets("A");
@@ -574,8 +579,9 @@ void progSkills() {
 	presets("A");
 	pros::delay(1200);
 	runPath("M");
-	rollers(50);
-	pros::delay(1000);
+	rollers(40);
+	pros::delay(1500);
+	runPath("M", true);
 	presets("B");
 	rollers(0);
 }

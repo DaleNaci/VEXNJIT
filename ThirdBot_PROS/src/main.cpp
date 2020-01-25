@@ -175,6 +175,8 @@ void initialize() {
 		},
 		"2"
 	);
+
+	pros::lcd::initialize();
 }
 
 bool areArmsAtStops() {
@@ -193,8 +195,7 @@ bool isLiftOverrideActive(bool isAuton) {
  * Moves the roller lift. Speed will depend on the speed parameter. The
  * range is -100 to 100.
 */
-void
-Raw(int speed) {
+void liftRaw(int speed) {
 	armL.moveVelocity(speed * 2);
 	armR.moveVelocity(-speed * 2);
 }
@@ -456,6 +457,9 @@ void autonomous() {
 	deployTray();
 	armL.tarePosition();
 	armR.tarePosition();
+
+	runPath("1", true);
+	runPath("2");
 }
 
 /**
@@ -464,11 +468,26 @@ void autonomous() {
  * period.
 */
 void opcontrol() {
+	// while (true) {
+	// 	liftControl();
+	// 	rollersControl();
+	// 	tilterControl();
+	// 	driveControl();
+	//
+	// 	pros::delay(20);
+	// }
 	while (true) {
-		liftControl();
-		rollersControl();
-		tilterControl();
-		driveControl();
+		if (armLStop.isPressed()) {
+			pros::lcd::set_text(1, "armLStop: 1");
+		} else {
+			pros::lcd::set_text(1, "armLStop: 0");
+		}
+
+		if (armRStop.isPressed()) {
+			pros::lcd::set_text(2, "armRStop: 1");
+		} else {
+			pros::lcd::set_text(2, "armRStop: 0");
+		}
 
 		pros::delay(20);
 	}
