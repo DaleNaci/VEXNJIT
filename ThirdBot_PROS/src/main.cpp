@@ -108,6 +108,8 @@ auto profileController = AsyncMotionProfileControllerBuilder()
  * and then generate paths (2D motion profiling) for auton.
 */
 void initialize() {
+	pros::lcd::initialize();
+
 	rollertrayL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -216,7 +218,7 @@ void lift(int speed, bool isAuton=false) {
 		speed = -30;
 	}
 
-	liftRaw(speed);
+lift(speed);
 }
 
 /**
@@ -429,12 +431,19 @@ void waitForArmReset() {
 	// 	pros::delay(20);
 	// }
 
-	while (!armLStop.isPressed() || !armRStop.isPressed()) {
-		if (armLStop.isPressed()) {
+	while (true) {
+		bool l = armLStop.isPressed();
+		bool r = armRStop.isPressed();
+
+		if (l) {
 			armL.moveVelocity(0);
 		}
-		if (armRStop.isPressed()) {
+		if (r) {
 			armR.moveVelocity(0);
+		}
+
+		if(l && r) {
+			break;
 		}
 	}
 }
@@ -446,8 +455,9 @@ void deployTray() {
 		continue;
 	}
 	rollersArms(0);
+	lift(0);
 	lift(-30);
-	waitForArmReset();
+	waitForArmReset();*/
 }
 
 /**
