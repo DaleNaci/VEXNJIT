@@ -343,14 +343,14 @@ void liftControl() {
 void presets(string preset) {
 	if (preset == "X") {
 		tilterPosition(-670, -100);
-		if (tilter1.getPosition() < -240) {
-			liftPosition(730, 100);
+		if (tilter1.getPosition() < -230) {
+			liftPosition(750, 100);
 		}
 	}
 	if (preset == "A") {
 		tilterPosition(-670, -100);
-		if (tilter1.getPosition() < -240) {
-			liftPosition(930, 100);
+		if (tilter1.getPosition() < -230) {
+			liftPosition(950, 100);
 		}
 	}
 	if (preset == "B") {
@@ -466,12 +466,16 @@ void red() {
 
 	turn(90_deg, 9);
 
-	runPath("1");
+	runPath("M");
 
 	turn(45_deg, 9);
 
+	rollers(-100);
+	pros::delay(2600);
+	rollers(0);
+	pros::delay(500);
 	rollers(41);
-	pros::delay(1000);
+	pros::delay(820);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -511,8 +515,12 @@ void blue() {
 
 	turn(-45_deg, 9);
 
+	rollers(-100);
+	pros::delay(1600);
+	rollers(0);
+	pros::delay(500);
 	rollers(41);
-	pros::delay(1000);
+	pros::delay(820);
 	rollers(0);
 	runPath("2");
 	runPath("3", true);
@@ -529,7 +537,7 @@ void blue() {
 	pros::delay(500);
 	turn(-45_deg, 20);
 
-	liftPosition(0, 100);
+	liftPosition(0, 80);
 }
 
 
@@ -601,8 +609,6 @@ void testAuton() {
  * given parameter (selected).
 */
 void autonSelect(string selected) {
-	pros::lcd::set_text(1, selected);
-
 	if (selected == "red") {
 		red();
 	} else if (selected == "blue") {
@@ -620,7 +626,7 @@ void autonSelect(string selected) {
  * autonSelect() function to have that select the correct auton.
 */
 void autonomous() {
-	string SELECTED_AUTON = "prog";
+	string SELECTED_AUTON = "red";
 	autonSelect(SELECTED_AUTON);
 }
 
