@@ -7,7 +7,7 @@ using namespace std;
 */
 //Tray Lift
 int8_t TILTER_LEFT_PORT = 15;
-int8_t TILTER_RIGHT_PORT = 16;
+int8_t TILTER_RIGHT_PORT = 18; //formelry 16 which is now dead
 
 //Arm Lift
 int8_t LEFT_LIFT_PORT = 4;
@@ -430,27 +430,32 @@ void waitForArmReset() {
 }
 
 void deployTray() {
-	/*rollersArms(-40);
+	rollersArms(-40);
 	liftPos(220, 30);
-	while (armL.getPosition() < 175) {
+	while (armL.getPosition() < 200) {
 		continue;
 	}
+	pros::delay(1000);
 	rollersArms(0);
-	lift(0);
+	//lift(0);
+	pros::delay(5000);
 	lift(-30);
-	waitForArmReset();*/
+	pros::delay(200);
+	lift(0);
+
+//	waitForArmReset();`
 }
 
 /**
  * Runs the autonomous function for the auton period.
 */
 void autonomous() {
-//	deployTray();
+deployTray();
 
 
 
-	runPath("1", true);
-	runPath("2");
+//	runPath("1", true);
+//	runPath("2");
 }
 
 /**
