@@ -472,7 +472,7 @@ void waitForArmReset() {
 	}
 }
 
-void deployTray() {
+/*void deployTray() {
 	rollersArms(-40);
 	liftPos(220, 30);
 	while (armL.getPosition() < 200) {
@@ -488,7 +488,7 @@ void deployTray() {
 
 //	waitForArmReset();`
 }
-
+*/
 /**
  * Runs the autonomous function for the auton period.
 */
