@@ -34,6 +34,16 @@ Motor liftR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::green, AbstractMotor
 
 Motor tilter1(TILTER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
+Motor driveR1(RIGHT_DRIVE_1_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveR2(RIGHT_DRIVE_2_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveR3(RIGHT_DRIVE_3_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveR4(RIGHT_DRIVE_4_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveL1(LEFT_DRIVE_1_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveL2(LEFT_DRIVE_2_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveL3(LEFT_DRIVE_3_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor driveL4(LEFT_DRIVE_4_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+
+
 
 /**
  * These are the variables that are used to configure controller inputs
@@ -73,7 +83,28 @@ auto chassis = ChassisControllerBuilder()
 		}
 	).build();
 
+// auto profileController = AsyncMotionProfileControllerBuilder()
+// 	.withLimits(
+// 		{
+// 			0.265,
+// 			0.9,
+// 			5.21
+// 		}
+// 	).withOutput(
+// 		chassis
+// 	).buildMotionProfileController();
 auto profileController = AsyncMotionProfileControllerBuilder()
+	.withLimits(
+		{
+			0.4,
+			1.1,
+			5.4
+		}
+	).withOutput(
+		chassis
+	).buildMotionProfileController();
+
+auto slowController = AsyncMotionProfileControllerBuilder()
 	.withLimits(
 		{
 			0.265,
@@ -100,106 +131,144 @@ void initialize() {
 	liftL.tarePosition();
 	liftR.tarePosition();
 	tilter1.tarePosition();
+	driveR1.tarePosition();
+	driveR2.tarePosition();
+	driveR3.tarePosition();
+	driveR4.tarePosition();
+	driveL1.tarePosition();
+	driveL2.tarePosition();
+	driveL3.tarePosition();
+	driveL4.tarePosition();
 
 
 
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{3.0_ft, 0_ft, 0_deg}
-		},
-		"A"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, -2.19_ft, 0_deg}
-		},
-		"B_blue"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.8_ft, -2.3_ft, 0_deg}
-		},
-		"B_red"
-	);
+
 	// profileController->generatePath(
 	// 	{
 	// 		{0_ft, 0_ft, 0_deg},
-	// 		{3.8_ft, 0_ft, 0_deg}
+	// 		{3.0_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"A"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{2.8_ft, -2.19_ft, 0_deg}
+	// 	},
+	// 	"B_blue"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{2.8_ft, -2.3_ft, 0_deg}
+	// 	},
+	// 	"B_red"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{2.0_ft, 0_ft, 0_deg}
 	// 	},
 	// 	"C"
 	// );
-	profileController->generatePath(
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{0.5_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"Wall"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{1.7_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"1"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{4.0_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"2"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{0.24_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"3"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{1.0_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"I"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{2.0_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"J"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{1.3_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"K"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{1.0_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"L"
+	// );
+	// profileController->generatePath(
+	// 	{
+	// 		{0_ft, 0_ft, 0_deg},
+	// 		{2.25_ft, 0_ft, 0_deg}
+	// 	},
+	// 	"M"
+	// );
+
+	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
-		},
-		"C"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{0.5_ft, 0_ft, 0_deg}
-		},
-		"Wall"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.7_ft, 0_ft, 0_deg}
+			{2.9_ft, 0_ft, 0_deg}
 		},
 		"1"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{4.0_ft, 0_ft, 0_deg}
+			{0.9_ft, 0_ft, 0_deg}
 		},
 		"2"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.24_ft, 0_ft, 0_deg}
+			{0.9_ft, 0_ft, 0_deg}
 		},
 		"3"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.0_ft, 0_ft, 0_deg}
+			{0.9_ft, 0_ft, 0_deg}
 		},
-		"I"
+		"4"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.0_ft, 0_ft, 0_deg}
+			{0.9_ft, 0_ft, 0_deg}
 		},
-		"J"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.3_ft, 0_ft, 0_deg}
-		},
-		"K"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{1.0_ft, 0_ft, 0_deg}
-		},
-		"L"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.25_ft, 0_ft, 0_deg}
-		},
-		"M"
+		"5"
 	);
 }
 
@@ -392,16 +461,20 @@ void presetControl() {
 */
 void tilterControl() {
 	if (trayDown.isPressed() && tilter1.getTargetVelocity() != 40) {
-		tilter(90);
+		tilter(100);
 		if (tilter1.getPosition() > 0) {
 			tilter1.tarePosition();
 		}
 	} else if (trayUp.isPressed()) {
-		int vel = 40 + (350 + tilter1.getPosition()) * 0.171;
-		if (vel < 40) {
-			vel = 40;
+		if (tilter1.getPosition() > -250) {
+			tilter(-100);
+		} else {
+			int vel = 50 + (450 + (tilter1.getPosition() + 250)) * 0.1111;
+			if (vel < 50) {
+				vel = 50;
+			}
+			tilter(-vel);
 		}
-		tilter(-vel);
 	}
 	if (trayDown.changedToReleased() || trayUp.changedToReleased()) {
 		tilter(0);
@@ -433,6 +506,91 @@ void turn(QAngle angle, int speed) {
 }
 
 
+void pidTurn(double input) {
+	double angle = input * 3.78;
+
+	driveR1.tarePosition();
+	driveR2.tarePosition();
+	driveR3.tarePosition();
+	driveR4.tarePosition();
+	driveL1.tarePosition();
+	driveL2.tarePosition();
+	driveL3.tarePosition();
+	driveL4.tarePosition();
+
+	double TARGET = driveL1.getPosition() + angle;
+	double HALFWAY = driveL1.getPosition() + angle / 4;
+	double currentValue = driveL1.getPosition();
+	double currentError = TARGET - currentValue;
+	double previousError = 0;
+	double difference = driveL1.getPosition() - driveR1.getPosition();
+	double accel = true;
+
+	double kP = 1.000;
+	double kI = 0.000;
+	double kD = 5.000;
+	double kDr = 0.000;
+
+	double maxRate = 20;
+
+	while (fabs(currentError) > 10) {
+		if (angle > 0 && currentValue > HALFWAY) {
+			accel = false;
+		} else if (angle < 0 && currentValue < HALFWAY) {
+			accel = false;
+		}
+
+		double p = kP * currentError;
+		double i = kI;
+		double d = kD * (currentError - previousError);
+		double dr = kDr * difference;
+
+		double command = p + i + d;
+
+		if (fabs(command) > maxRate) {
+			if (command > 0) {
+				command = maxRate;
+			} else {
+				command = -maxRate;
+			}
+		}
+
+		double left = command - dr;
+		double right = -(command + dr);
+
+		driveL1.moveVelocity(left);
+		driveL2.moveVelocity(left);
+		driveL3.moveVelocity(left);
+		driveL4.moveVelocity(left);
+		driveR1.moveVelocity(right);
+		driveR2.moveVelocity(right);
+		driveR3.moveVelocity(right);
+		driveR4.moveVelocity(right);
+
+		pros::delay(20);
+
+		if (accel) {
+			if (maxRate < 150) {
+				maxRate += 10;
+			}
+		}
+
+		currentValue = driveL1.getPosition();
+		previousError = currentError;
+		currentError = TARGET - currentValue;
+	}
+
+	driveL1.moveVelocity(0);
+	driveL2.moveVelocity(0);
+	driveL3.moveVelocity(0);
+	driveL4.moveVelocity(0);
+	driveR1.moveVelocity(0);
+	driveR2.moveVelocity(0);
+	driveR3.moveVelocity(0);
+	driveR4.moveVelocity(0);
+}
+
+
 /**
  * Runs the path (pathName). It can take in the "reversed" and
  * "mirrored," but by default it treats both of them as false. This
@@ -442,6 +600,12 @@ void turn(QAngle angle, int speed) {
 void runPath(string pathName, bool reversed=false, bool mirrored=false) {
 	profileController->setTarget(pathName, reversed, mirrored);
 	profileController->waitUntilSettled();
+}
+
+
+void slowPath(string pathName, bool reversed=false, bool mirrored=false) {
+	slowController->setTarget(pathName, reversed, mirrored);
+	slowController->waitUntilSettled();
 }
 
 
@@ -519,38 +683,52 @@ void red() {
 */
 void blue() {
 	rollers(-100);
-	runPath("A");
-	runPath("B_blue", true);
-	runPath("Wall", true);
-	runPath("C");
-
-	pros::delay(1200);
-
+	slowPath("1");
 	rollers(0);
-
-	turn(-90_deg, 9);
-
-	runPath("M");
-
-	turn(-45_deg, 9);
-
-	rollers(40);
-	pros::delay(800);
-	rollers(0);
+	pidTurn(40);
+	rollers(-90);
 	runPath("2");
 	runPath("3", true);
+	pidTurn(-40);
+	runPath("4");
+	runPath("5", true);
 
-	tilterPosition(-1000, -40);
-	while (tilter1.getPosition() > -950) {
-		continue;
-	}
-	pros::delay(800);
 
-	runPath("I");
-	runPath("I");
-	runPath("J", true);
-	pros::delay(500);
-	turn(-45_deg, 20);
+	// rollers(-100);
+	// runPath("A");
+	// runPath("B_blue", true);
+	// runPath("Wall", true);
+	// runPath("C");
+	//
+	// pros::delay(1200);
+	//
+	// rollers(0);
+	//
+	// turn(-90_deg, 9);
+	//
+	// runPath("M");
+	//
+	// turn(-45_deg, 9);
+	//
+	// rollers(40);
+	// pros::delay(800);
+	// rollers(0);
+	// runPath("2");
+	// runPath("3", true);
+	//
+	// tilterPosition(-1000, -40);
+	// while (tilter1.getPosition() > -950) {
+	// 	continue;
+	// }
+	// pros::delay(800);
+	//
+	// runPath("I");
+	// runPath("I");
+	// runPath("J", true);
+	// pros::delay(500);
+	// turn(-45_deg, 20);
+
+
 }
 
 
@@ -608,7 +786,7 @@ void progSkills() {
  * competition. This is only for testing purposes.
 */
 void testAuton() {
-
+	pidTurn(90);
 }
 
 
@@ -617,8 +795,6 @@ void testAuton() {
  * given parameter (selected).
 */
 void autonSelect(string selected) {
-	pros::lcd::set_text(1, selected);
-
 	if (selected == "red") {
 		red();
 	} else if (selected == "blue") {
