@@ -125,8 +125,6 @@ void initialize() {
 	tilterR.tarePosition();
 	tilterL.tarePosition();
 
-	pros::Task my_task (my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
-	                TASK_STACK_DEPTH_DEFAULT, "My Task");
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
@@ -598,12 +596,8 @@ void autonomous() {
 	armR.tarePosition();
 }
 
-/**
- * This function is called by the competition switch, and will call all
- * of the control functions that are used during the driver control
- * period.
-*/
-void driveControl1()
+//Task runnable version of driveControl
+void driveControl1(void* param)
 {
 	while(true)
 	{
@@ -611,7 +605,9 @@ void driveControl1()
 		pros::delay(20);
 	}
 }
-void presetControl1()
+
+//Task runnable version of presetControl
+void presetControl1(void* param)
 {
 	while(true)
 	{
@@ -619,6 +615,12 @@ void presetControl1()
 		pros::delay(20);
 	}
 }
+
+/**
+ * This function is called by the competition switch, and will call all
+ * of the control functions that are used during the driver control
+ * period.
+*/
 void opcontrol() {
 	armL.tarePosition();
 	armR.tarePosition();
@@ -626,10 +628,11 @@ void opcontrol() {
 	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmR.setBrakeMode(AbstractMotor::brakeMode::hold);
-	pros::Task my_task(driveControl1, "drive");
+	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 	//driveControl();
 	//presetControl();
-	pros::Task my_task(presetControl1, "presets");
+	pros::Task my_task2(presetControl1, (void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "presets");
+
 
 	while (true) {
 		liftControl();
