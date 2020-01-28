@@ -113,7 +113,7 @@ auto profileController = AsyncMotionProfileControllerBuilder()
  * and then generate paths (2D motion profiling) for auton.
 */
 void initialize() {
-	pros::c::lcd_initialize();
+
 
 	rollertrayL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -125,6 +125,8 @@ void initialize() {
 	tilterR.tarePosition();
 	tilterL.tarePosition();
 
+	pros::Task my_task (my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
+	                TASK_STACK_DEPTH_DEFAULT, "My Task");
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
@@ -601,6 +603,22 @@ void autonomous() {
  * of the control functions that are used during the driver control
  * period.
 */
+void driveControl1()
+{
+	while(true)
+	{
+		driveControl();
+		pros::delay(20);
+	}
+}
+void presetControl1()
+{
+	while(true)
+	{
+		presetControl();
+		pros::delay(20);
+	}
+}
 void opcontrol() {
 	armL.tarePosition();
 	armR.tarePosition();
@@ -608,13 +626,16 @@ void opcontrol() {
 	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmR.setBrakeMode(AbstractMotor::brakeMode::hold);
+	pros::Task my_task(driveControl1, "drive");
+	//driveControl();
+	//presetControl();
+	pros::Task my_task(presetControl1, "presets");
 
 	while (true) {
 		liftControl();
 		rollersControl();
 		tilterControl();
-		driveControl();
-		presetControl();
+
 
 		pros::delay(20);
 	}
