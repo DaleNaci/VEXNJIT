@@ -25,6 +25,7 @@ int8_t LEFT_BACK_DRIVE_PORT = 14;
 int8_t RIGHT_FRONT_DRIVE_PORT = 6;
 int8_t RIGHT_BACK_DRIVE_PORT = 13;
 
+//Arm Stop Buttons
 int8_t ARM_LEFT_STOP_SWITCH_PORT = 8;
 int8_t ARM_RIGHT_STOP_SWITCH_PORT = 7;
 
@@ -42,8 +43,8 @@ Motor armR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::e
 Motor rollerarmL(ARM_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor rollerarmR(ARM_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
-Motor rollertrayL(TRAY_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
-Motor rollertrayR(TRAY_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rollertrayL(TRAY_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor rollertrayR(TRAY_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
 Motor driveFL(LEFT_FRONT_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveBL(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
@@ -75,7 +76,8 @@ ControllerButton presetRight(ControllerDigital::right);
 ControllerButton toggleAuto(ControllerDigital::left);
 
 bool areArmsResetting = false;
-bool toggleAssist = true;
+bool armUp = false;
+bool toggleAssist = true; //Auto Tower Assist feature starts on
 
 /**
  * These are the chassis variables that are used for the driver control
@@ -111,12 +113,14 @@ auto profileController = AsyncMotionProfileControllerBuilder()
  * and then generate paths (2D motion profiling) for auton.
 */
 void initialize() {
+	pros::c::lcd_initialize();
+
 	rollertrayL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterL.setBrakeMode(AbstractMotor::brakeMode::hold);
-	// armL.setBrakeMode(AbstractMotor::brakeMode::hold);
-	// armR.setBrakeMode(AbstractMotor::brakeMode::hold);
+	armL.setBrakeMode(AbstractMotor::brakeMode::hold);
+	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 
 	tilterR.tarePosition();
 	tilterL.tarePosition();
@@ -200,11 +204,20 @@ void lift(int speed) {
 void liftControl() {
 	if (liftUp.changedToPressed()) {
 		lift(60);
+		if(armL.getPosition() > 100)
+		{
+			armUp = true;
+		}
 	} else if (liftDown.changedToPressed()) {
 		lift(-60);
+		if(armL.getPosition() < 100)
+		{
+			armUp = false;
+		}
 		if (armL.getPosition() < 0) {
 			armL.tarePosition();
 			armR.tarePosition();
+			armUp = false;
 		}
 	}
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
@@ -328,29 +341,39 @@ void rollersArmsDegrees(int speed, int degrees) {
 
 }
 
-//Function to move both sets of rollers a specified number of degrees
+/*Function to move both sets of rollers a specified number of degrees, speed is
+absolute and positive position specifies out while negative position specifies in
+*/
 void rollersDegrees(int speed, int degrees)
 {
 	rollersTrayDegrees(speed, degrees);
 	rollersArmsDegrees(speed, degrees);
-	int errorRange = 3; //the rnage wh8ere the function will stop moving teh motors, plus or minus errorRange
-	while (!(rollerarmL.getPosition() > rollerarmL.getTargetPosition() + errorRange && rollerarmL.getPosition() < rollerarmL.getTargetPosition() - errorRange))
+	int errorRange = 50; //the rnage where the function will stop moving the motors, plus or minus errorRange
+	while ((rollerarmL.getPosition() > rollerarmL.getTargetPosition() + errorRange || rollerarmL.getPosition() < rollerarmL.getTargetPosition() - errorRange))
 	{
 		// Continue running this loop as long as the motor is not at its goal position
-		pros::delay(2);
+		pros::c::delay(2);
 	}
 }
 /*automatically loads cubes into the lift arms for scoring towerAssist*/
 void towerAssist(bool toggle)
 {
-	if(toggleAssist) //if the assist is on then run the following
+
+/*rollerarmL.moveRelative(360, 100);//in
+rollerarmL.moveRelative(-360, -100);//out
+	rollerarmL.moveRelative(360, -100);//in
+		rollerarmL.moveRelative(-360, -100);//out
+		*/
+
+	if(toggleAssist && !armUp) //if the assist is on then run the following
 	{
 		// bring up cubes first
-		rollersDegrees(-100, -360);
+		rollersDegrees(100, -720);
 		pros::delay(200);
 		//push 1 cube down
-		rollersDegrees(100, 270);
+		rollersDegrees(100, 360);
 	}
+		armUp = true;
 }
 /**
  * Move the tray up or down, depending on the state of the up and down
@@ -441,6 +464,7 @@ void presets(string preset) {
 			tilterPosition(0, 100);
 		} else {
 			liftPosition(0, 100);
+			armUp = false;
 		}
 	}
 	if (preset == "X") {
