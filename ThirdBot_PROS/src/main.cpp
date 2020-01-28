@@ -301,22 +301,29 @@ void rollersControl() {
 	}
 }
 
+/**
+ * Moves both tray roller motors a specified number of degrees. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
+*/
+
 void rollersTrayDegrees(int speed, int degrees) {
-	int	ticksPerRevoultion = 1800; // ticks per revoultion of a red insert motor
-	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
+//	int	ticksPerRevoultion = 1800; // ticks per revoultion of a red insert motor
+//	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
+	int ticks = degrees;
 	rollertrayL.moveRelative(ticks, speed);
-	rollertrayR.moveRelative(ticks, -speed);
+	rollertrayR.moveRelative(-ticks, -speed);
 }
 
 
 /**
- * Moves both arm roller motors. Speed will depend on the speed parameter.
+ * Moves both arm roller motors a specified number of degrees. Speed will depend on the speed parameter.
  * The range is -100 to 100.
 */
 void rollersArmsDegrees(int speed, int degrees) {
-	int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
-	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
-	rollerarmL.moveRelative(ticks, -speed);
+	//int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
+	//int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
+	int ticks = degrees;
+	rollerarmL.moveRelative(-ticks, -speed);
 	rollerarmR.moveRelative(ticks, speed);
 
 }
@@ -324,25 +331,25 @@ void rollersArmsDegrees(int speed, int degrees) {
 //Function to move both sets of rollers a specified number of degrees
 void rollersDegrees(int speed, int degrees)
 {
-	rollersTrayDegrees(speed, -degrees);
-	rollersArmsDegrees(speed, -degrees);
-
-	while (rollerarmL.getPosition() != rollerarmL.getTargetPosition() - 1)
+	rollersTrayDegrees(speed, degrees);
+	rollersArmsDegrees(speed, degrees);
+	int errorRange = 3; //the rnage wh8ere the function will stop moving teh motors, plus or minus errorRange
+	while (!(rollerarmL.getPosition() > rollerarmL.getTargetPosition() + errorRange && rollerarmL.getPosition() < rollerarmL.getTargetPosition() - errorRange))
 	{
 		// Continue running this loop as long as the motor is not at its goal position
 		pros::delay(2);
 	}
-
+}
 /*automatically loads cubes into the lift arms for scoring towerAssist*/
 void towerAssist(bool toggle)
 {
 	if(toggleAssist) //if the assist is on then run the following
 	{
 		// bring up cubes first
-		rollersDegrees(100, -360);
+		rollersDegrees(-100, -360);
 		pros::delay(200);
 		//push 1 cube down
-		rollersDegrees(-100, 270);
+		rollersDegrees(100, 270);
 	}
 }
 /**
