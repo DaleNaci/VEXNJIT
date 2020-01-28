@@ -72,9 +72,10 @@ ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
 ControllerButton presetRight(ControllerDigital::right);
-
+ControllerButton toggleAuto(ControllerDigital::left);
 
 bool areArmsResetting = false;
+bool toggleAssist = true;
 
 /**
  * These are the chassis variables that are used for the driver control
@@ -300,7 +301,52 @@ void rollersControl() {
 	}
 }
 
+void rollersTrayDegrees(int speed, int degrees) {
+	int	ticksPerRevoultion = 1800; // ticks per revoultion of a red insert motor
+	int ticks = floor(degrees / 360 * ticksPerRevoultion);
+	rollertrayL.moveRelative(ticks, speed);
+	rollertrayR.moveRelative(ticks, -speed);
+}
 
+
+/**
+ * Moves both arm roller motors. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
+*/
+void rollersArmsDegrees(int speed, int degrees) {
+int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
+int ticks = floor(degrees / 360 * ticksPerRevoultion);
+	rollerarmL.moveRelative(ticks, -speed);
+	rollerarmR.moveRelative(ticks, speed);
+
+}
+/*automatically loads cubes into the lift arms for scoring towerAssist*/
+void towerAssist(bool toggle)
+{
+
+	if(toggleAssist) //if the assist is on then run the following
+	{
+		// bring up cubes first
+		rollersTrayDegrees(100, -360);
+		rollersArmsDegrees(100, -360);
+
+			while (rollerarmL.getPosition() != rollerarmL.getTargetPosition()) {
+	// Continue running this loop as long as the motor is not at its goal
+	pros::delay(2);
+}
+
+		//push 1 cube down
+		pros::delay(200);
+		rollersTrayDegrees(-100, 270);
+		rollersArmsDegrees(-100, 270);
+		while (rollerarmL.getPosition() != rollerarmL.getTargetPosition()) {
+// Continue running this loop as long as the motor is not at its goal
+pros::delay(2);
+}
+//pros::delay(500);
+	}
+
+}
 /**
  * Move the tray up or down, depending on the state of the up and down
  * buttons. If the up button is pressed, the tray will move upwards. If
@@ -310,6 +356,7 @@ void rollersControl() {
  * certain point in its range of motion, it is capped at a maximum
  * velocity.
 */
+
 void tilterControl() {
 	if (trayUp.changedToPressed()) {
 		tilter(80);
@@ -392,18 +439,34 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "X") {
+			towerAssist(toggleAssist);
 		liftPosition(445, 100);
 	}
 	if (preset == "A") {
+		towerAssist(toggleAssist);
 		liftPosition(350, 100);
 
 	}
 	if (preset == "Y") {
+			towerAssist(toggleAssist);
 		liftPosition(600, 90);
 	}
 	if (preset == "right") {
 		deployTray();
 	}
+	if (preset == "left") {
+		toggleAssist = !toggleAssist;//Toggles The cube tower scoring assist feature
+		 /* pros::c::controller_rumble(, ". - . -");
+		if(toggleAssist)
+		{
+
+		}
+		else
+		{
+
+		}
+*/
+}
 }
 
 /**
@@ -422,6 +485,9 @@ void presetControl() {
 	if (presetY.isPressed()) {
 		presets("Y");
 	}
+	if (toggleAuto.isPressed()) {
+	 presets("left");
+ }
 	// if (presetRight.isPressed()) {
 	// 	presets("right");
 	// }
