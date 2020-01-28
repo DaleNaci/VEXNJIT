@@ -303,7 +303,7 @@ void rollersControl() {
 
 void rollersTrayDegrees(int speed, int degrees) {
 	int	ticksPerRevoultion = 1800; // ticks per revoultion of a red insert motor
-	int ticks = floor(degrees / 360 * ticksPerRevoultion);
+	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
 	rollertrayL.moveRelative(ticks, speed);
 	rollertrayR.moveRelative(ticks, -speed);
 }
@@ -314,38 +314,36 @@ void rollersTrayDegrees(int speed, int degrees) {
  * The range is -100 to 100.
 */
 void rollersArmsDegrees(int speed, int degrees) {
-int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
-int ticks = floor(degrees / 360 * ticksPerRevoultion);
+	int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
+	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
 	rollerarmL.moveRelative(ticks, -speed);
 	rollerarmR.moveRelative(ticks, speed);
 
 }
+
+//Function to move both sets of rollers a specified number of degrees
+void rollersDegrees(int speed, int degrees)
+{
+	rollersTrayDegrees(speed, -degrees);
+	rollersArmsDegrees(speed, -degrees);
+
+	while (rollerarmL.getPosition() != rollerarmL.getTargetPosition() - 1)
+	{
+		// Continue running this loop as long as the motor is not at its goal position
+		pros::delay(2);
+	}
+
 /*automatically loads cubes into the lift arms for scoring towerAssist*/
 void towerAssist(bool toggle)
 {
-
 	if(toggleAssist) //if the assist is on then run the following
 	{
 		// bring up cubes first
-		rollersTrayDegrees(100, -360);
-		rollersArmsDegrees(100, -360);
-
-			while (rollerarmL.getPosition() != rollerarmL.getTargetPosition()) {
-	// Continue running this loop as long as the motor is not at its goal
-	pros::delay(2);
-}
-
-		//push 1 cube down
+		rollersDegrees(100, -360);
 		pros::delay(200);
-		rollersTrayDegrees(-100, 270);
-		rollersArmsDegrees(-100, 270);
-		while (rollerarmL.getPosition() != rollerarmL.getTargetPosition()) {
-// Continue running this loop as long as the motor is not at its goal
-pros::delay(2);
-}
-//pros::delay(500);
+		//push 1 cube down
+		rollersDegrees(-100, 270);
 	}
-
 }
 /**
  * Move the tray up or down, depending on the state of the up and down
@@ -439,7 +437,7 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "X") {
-			towerAssist(toggleAssist);
+		towerAssist(toggleAssist);
 		liftPosition(445, 100);
 	}
 	if (preset == "A") {
@@ -448,14 +446,14 @@ void presets(string preset) {
 
 	}
 	if (preset == "Y") {
-			towerAssist(toggleAssist);
+		towerAssist(toggleAssist);
 		liftPosition(600, 90);
 	}
 	if (preset == "right") {
 		deployTray();
 	}
 	if (preset == "left") {
-		toggleAssist = !toggleAssist;//Toggles The cube tower scoring assist feature
+		toggleAssist = !toggleAssist;//Toggles the cube tower scoring assist feature
 		 /* pros::c::controller_rumble(, ". - . -");
 		if(toggleAssist)
 		{
