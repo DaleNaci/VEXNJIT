@@ -114,7 +114,7 @@ auto profileController = AsyncMotionProfileControllerBuilder()
 */
 void initialize() {
 
-
+pros::c::lcd_initialize();
 	rollertrayL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -302,10 +302,11 @@ void rollersControl() {
 		}
 	} else {
 		if (intakeIn.isPressed()) {
-			rollersArms(100);
+			rollersArms(70);
 			rollersTray(100);
+			//pros::c::lcd_print(0, "Current Draw: %f ma",rollerarmL.getEfficiency());
 		} else if (intakeOut.isPressed()) {
-			rollersArms(-100);
+			rollersArms(-70);
 			rollersTray(-100);
 		} else {
 			rollersArms(0);
@@ -631,14 +632,14 @@ void opcontrol() {
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 	//driveControl();
 	//presetControl();
-	pros::Task my_task2(presetControl1, (void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "presets");
+//	pros::Task my_task2(presetControl1, (void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "presets");
 
 
 	while (true) {
 		liftControl();
 		rollersControl();
 		tilterControl();
-
+presetControl();
 
 		pros::delay(20);
 	}
