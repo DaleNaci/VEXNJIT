@@ -67,16 +67,17 @@ ControllerButton trayUp(ControllerDigital::R1);
 
 ControllerButton liftUp(ControllerDigital::up);
 ControllerButton liftDown(ControllerDigital::down);
+ControllerButton toggleAuto(ControllerDigital::left);
+ControllerButton presetRight(ControllerDigital::right);
 
 ControllerButton presetA(ControllerDigital::A);
 ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
-ControllerButton presetRight(ControllerDigital::right);
-ControllerButton toggleAuto(ControllerDigital::left);
 
-bool areArmsResetting = false;
-bool armUp = false;
+//Global boolean variables
+bool deployed = false; //has the robot run the deploy function yet
+bool armUp = false; //is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
 /**
@@ -184,6 +185,27 @@ pros::c::lcd_initialize();
 	);
 }
 
+/**
+ * This runs the drive on an arcade control setup. The left vertical
+ * axis moves the drive up and down, while the right horizontal axis
+ * point the drive left and right.
+*/
+void driveControl() {
+	chassis->getModel()->arcade(
+		joystick.getAnalog(ControllerAnalog::leftY),
+		joystick.getAnalog(ControllerAnalog::rightX) * .6
+	);
+}
+
+//Task runnable version of driveControl
+void driveControl1(void* param)
+{
+	while(true)
+	{
+		driveControl();
+		pros::delay(20);
+	}
+}
 
 /**
  * Moves the roller lift. Speed will depend on the speed parameter. The
@@ -194,6 +216,14 @@ void lift(int speed) {
 	armR.moveVelocity(-speed * 2);
 }
 
+/**
+ * Moves the roller lift to a specified position. Speed will depend on the speed parameter. The
+ * range is -100 to 100.
+*/
+void liftPosition(int pos, int speed) {
+    armL.moveAbsolute(pos, speed);
+    armR.moveAbsolute(-pos, speed);
+}
 
 /**
  * Move the lift up or down, depending on the state of the up and down
@@ -229,13 +259,6 @@ void liftControl() {
 	}
 }
 
-void liftPosition(int pos, int speed) {
-    armL.moveAbsolute(pos, speed);
-    armR.moveAbsolute(-pos, speed);
-
-}
-
-
 /**
  * Moves both tray roller motors. Speed will depend on the speed parameter.
  * The range is -100 to 100.
@@ -255,28 +278,40 @@ void rollersArms(int speed) {
 	rollerarmR.moveVelocity(speed);
 }
 
-
 /**
- * Moves the tilter. Speed will depend on the speed parameter. The range
- * is -100 to 100. If speed is 0, the motor will stop with a brakeType
- * of "hold."
+ * Moves both tray roller motors a specified number of degrees. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
 */
-void tilter(int speed) {
-	tilterR.moveVelocity(speed);
-	tilterL.moveVelocity(-speed);
+
+void rollersTrayDegrees(int degrees, int speed) {
+	rollertrayL.moveRelative(degrees, speed);
+	rollertrayR.moveRelative(-degrees, -speed);
 }
 
 
 /**
- * Moves the tilter to a specific absolute position. Position will
- * depend on the pos parameter. Speed will depend on the speed
- * parameter.
+ * Moves both arm roller motors a specified number of degrees. Speed will depend on the speed parameter.
+ * The range is -100 to 100.
 */
-void tilterPosition(int pos, int speed) {
-	tilterR.moveAbsolute(pos, speed);
-	tilterL.moveAbsolute(-pos, speed);
+void rollersArmsDegrees(int degrees, int speed) {
+	rollerarmL.moveRelative(-degrees, -speed);
+	rollerarmR.moveRelative(degrees, speed);
 }
 
+/*Function to move both sets of rollers a specified number of degrees, speed is
+absolute and positive position specifies out while negative position specifies in
+*/
+void rollersDegrees(int degrees, int speed)
+{
+	rollersTrayDegrees(degrees, speed);
+	rollersArmsDegrees(degrees, speed);
+	int errorRange = 50; //the range where the function will stop moving the motors, plus or minus errorRange
+	while ((rollerarmL.getPosition() > rollerarmL.getTargetPosition() + errorRange || rollerarmL.getPosition() < rollerarmL.getTargetPosition() - errorRange))
+	{
+		// Continue running this loop as long as the motor is not at its goal position
+		pros::c::delay(2);
+	}
+}
 
 /**
  * Moves the rollers to intake and outtake depending on the state of
@@ -321,65 +356,24 @@ void rollersControl() {
 }
 
 /**
- * Moves both tray roller motors a specified number of degrees. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+ * Moves the tilter. Speed will depend on the speed parameter. The range
+ * is -100 to 100. If speed is 0, the motor will stop with a brakeType
+ * of "hold."
 */
-
-void rollersTrayDegrees(int speed, int degrees) {
-//	int	ticksPerRevoultion = 1800; // ticks per revoultion of a red insert motor
-//	int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
-	int ticks = degrees;
-	rollertrayL.moveRelative(ticks, speed);
-	rollertrayR.moveRelative(-ticks, -speed);
+void tilter(int speed) {
+	tilterR.moveVelocity(speed);
+	tilterL.moveVelocity(-speed);
 }
 
 
 /**
- * Moves both arm roller motors a specified number of degrees. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+ * Moves the tilter to a specific absolute position. Position will
+ * depend on the pos parameter. Speed will depend on the speed
+ * parameter.
 */
-void rollersArmsDegrees(int speed, int degrees) {
-	//int	ticksPerRevoultion = 900; // ticks per revoultion of a green insert motor
-	//int ticks = floor(degrees / 360 * ticksPerRevoultion); //compute number of ticks to rotate
-	int ticks = degrees;
-	rollerarmL.moveRelative(-ticks, -speed);
-	rollerarmR.moveRelative(ticks, speed);
-
-}
-
-/*Function to move both sets of rollers a specified number of degrees, speed is
-absolute and positive position specifies out while negative position specifies in
-*/
-void rollersDegrees(int speed, int degrees)
-{
-	rollersTrayDegrees(speed, degrees);
-	rollersArmsDegrees(speed, degrees);
-	int errorRange = 50; //the rnage where the function will stop moving the motors, plus or minus errorRange
-	while ((rollerarmL.getPosition() > rollerarmL.getTargetPosition() + errorRange || rollerarmL.getPosition() < rollerarmL.getTargetPosition() - errorRange))
-	{
-		// Continue running this loop as long as the motor is not at its goal position
-		pros::c::delay(2);
-	}
-}
-/*automatically loads cubes into the lift arms for scoring towerAssist*/
-void towerAssist(bool toggle)
-{
-
-/*rollerarmL.moveRelative(360, 100);//in
-rollerarmL.moveRelative(-360, -100);//out
-	rollerarmL.moveRelative(360, -100);//in
-		rollerarmL.moveRelative(-360, -100);//out
-		*/
-
-	if(toggleAssist && !armUp) //if the assist is on then run the following
-	{
-		// bring up cubes first
-		rollersDegrees(100, -720);
-		pros::delay(200);
-		//push 1 cube down
-		rollersDegrees(100, 360);
-	}
-		armUp = true;
+void tilterPosition(int pos, int speed) {
+	tilterR.moveAbsolute(pos, speed);
+	tilterL.moveAbsolute(-pos, speed);
 }
 /**
  * Move the tray up or down, depending on the state of the up and down
@@ -403,26 +397,15 @@ void tilterControl() {
 		}
 	}
 }
-
-
-/**
- * This runs the drive on an arcade control setup. The left vertical
- * axis moves the drive up and down, while the right horizontal axis
- * point the drive left and right.
+/*
+Function to deploy the lift arms and tray on match start
 */
-void driveControl() {
-	chassis->getModel()->arcade(
-		joystick.getAnalog(ControllerAnalog::leftY),
-		joystick.getAnalog(ControllerAnalog::rightX) * .6
-	);
-}
-
-
 void deployTray() {
 	rollersArms(-40);
-	pros::delay(500);
-	liftPosition(280, 30);
-	while (armL.getPosition() < 279) {
+	//pros::delay(500); //commented out because it may be causing the iq wheels to break
+	int posTemp = 280;
+	liftPosition(posTemp, 30);
+	while (armL.getPosition() < posTemp - 1) {
 		continue;
 	}
 	rollersArms(0);
@@ -446,12 +429,14 @@ void deployTray() {
 		}
 	}
 
+//Deploy the anti-tip by moving the tray up and then back down
 	tilterPosition(-100, 90);
 	while (tilterR.getPosition() > -99) {
 		continue;
 	}
 	tilterPosition(0, 90);
-	// waitForArmReset();
+
+	//lift the arms out of the way of the tray
 	liftPosition(550, 40);
 	while (armL.getPosition() < 549) {
 		continue;
@@ -459,7 +444,19 @@ void deployTray() {
 	liftPosition(0, 40);
 }
 
-
+/*Function to automatically loads cubes into the lift arms for scoring towerAssist*/
+void towerAssist()
+{
+	if(toggleAssist && !armUp) //if the assist is on then run the following
+	{
+		// bring up cubes first
+		rollersDegrees(100, -360);
+		pros::delay(20);
+		//push 1 cube down
+		rollersDegrees(100, 360);
+	}
+		armUp = true;//Lift arnm will be moving up fter this function so set ArmUp to true
+}
 /**
  * Moves different mechanisms to certain positions based on the
  * parameter, preset. Each preset will call different functions.
@@ -474,19 +471,19 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "X") {
-		towerAssist(toggleAssist);
+		towerAssist();
 		liftPosition(445, 100);
 	}
 	if (preset == "A") {
-		towerAssist(toggleAssist);
+		towerAssist();
 		liftPosition(350, 100);
-
 	}
 	if (preset == "Y") {
-		towerAssist(toggleAssist);
+		towerAssist();
 		liftPosition(600, 90);
 	}
-	if (preset == "right") {
+	if (preset == "right" && !deployed) {
+		deployed = true;
 		deployTray();
 	}
 	if (preset == "left") {
@@ -523,9 +520,9 @@ void presetControl() {
 	if (toggleAuto.changedToPressed()) {
 	 presets("left");
  }
-	// if (presetRight.isPressed()) {
-	// 	presets("right");
-	// }
+	if (presetRight.isPressed()) {
+	presets("right");
+ }
 }
 
 
@@ -551,11 +548,7 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
-void waitForArmReset() {
-	// while(areArmsResetting) {
-	// 	pros::delay(20);
-	// }
-
+/*void waitForArmReset() {
 	while (true) {
 		bool l = armLStop.isPressed();
 		bool r = armRStop.isPressed();
@@ -571,25 +564,8 @@ void waitForArmReset() {
 			break;
 		}
 	}
-}
+}*/
 
-/*void deployTray() {
-	rollersArms(-40);
-	liftPos(220, 30);
-	while (armL.getPosition() < 200) {
-		continue;
-	}
-	pros::delay(1000);
-	rollersArms(0);
-	//lift(0);
-	pros::delay(5000);
-	lift(-30);
-	pros::delay(200);
-	lift(0);
-
-//	waitForArmReset();`
-}
-*/
 /**
  * Runs the autonomous function for the auton period.
 */
@@ -598,28 +574,7 @@ void autonomous() {
 	runPath("2");
 
 	deployTray();
-	armL.tarePosition();
-	armR.tarePosition();
-}
-
-//Task runnable version of driveControl
-void driveControl1(void* param)
-{
-	while(true)
-	{
-		driveControl();
-		pros::delay(20);
-	}
-}
-
-//Task runnable version of presetControl
-void presetControl1(void* param)
-{
-	while(true)
-	{
-		presetControl();
-		pros::delay(20);
-	}
+	deployed = true;
 }
 
 /**
@@ -634,12 +589,10 @@ void opcontrol() {
 	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmR.setBrakeMode(AbstractMotor::brakeMode::hold);
+	//Multi threaded driveControl so that the robot can be driven while other code is executed
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
-	//driveControl();
-	//presetControl();
-//	pros::Task my_task2(presetControl1, (void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "presets");
 
-
+//Loop through all Control Function groups to use the robots functionality
 	while (true) {
 		liftControl();
 		rollersControl();
