@@ -389,7 +389,15 @@ void tilterControl() {
 	if (trayUp.changedToPressed()) {
 		tilter(80);
 	} else if (trayDown.changedToPressed()) {
-		tilter(-65);
+		if (tilterL.getPosition() > -100) {
+			tilter(-100);
+		} else {
+			int vel = 50 + (250 + (tilterL.getPosition() + 100)) * 0.2000;
+			if (vel < 50) {
+				vel = 50;
+			}
+			tilter(-vel);
+		}
 	}
 	if (trayUp.changedToReleased() || trayDown.changedToReleased()) {
 		if (tilterL.getTargetVelocity() != 100) {

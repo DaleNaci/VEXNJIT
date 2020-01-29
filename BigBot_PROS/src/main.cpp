@@ -242,33 +242,47 @@ void initialize() {
 		},
 		"1"
 	);
-	profileController->generatePath(
+	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.9_ft, 0_ft, 0_deg}
+			{1.1_ft, 0_ft, 0_deg}
 		},
 		"2"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.9_ft, 0_ft, 0_deg}
+			{1.1_ft, 0_ft, 0_deg}
 		},
 		"3"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.9_ft, 0_ft, 0_deg}
+			{1.15_ft, 0_ft, 0_deg}
 		},
 		"4"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.9_ft, 0_ft, 0_deg}
+			{2.1_ft, 0_ft, 0_deg},
 		},
 		"5"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.25_ft, 0_ft, 0_deg}
+		},
+		"6"
+	);
+	slowController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{0.5_ft, 0_ft, 0_deg}
+		},
+		"7"
 	);
 }
 
@@ -531,7 +545,7 @@ void pidTurn(double input) {
 	double kD = 5.000;
 	double kDr = 0.000;
 
-	double maxRate = 20;
+	double maxRate = 16;
 
 	while (fabs(currentError) > 10) {
 		if (angle > 0 && currentValue > HALFWAY) {
@@ -684,14 +698,32 @@ void red() {
 void blue() {
 	rollers(-100);
 	slowPath("1");
+
 	rollers(0);
 	pidTurn(40);
 	rollers(-90);
-	runPath("2");
+	slowPath("2");
+
+	pros::delay(100);
+	rollers(0);
 	runPath("3", true);
-	pidTurn(-40);
+
+	pidTurn(-33.7);
+	pros::delay(100);
+	rollers(-90);
 	runPath("4");
+
+	pros::delay(200);
 	runPath("5", true);
+
+	rollers(0);
+	pidTurn(180);
+	pros::delay(300);
+	runPath("6");
+
+	rollers(-100);
+	slowPath("7");
+
 
 
 	// rollers(-100);
