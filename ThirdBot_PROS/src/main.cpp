@@ -80,6 +80,8 @@ bool deployed = false; //has the robot run the deploy function yet
 bool armUp = false; //is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
+
+int bPresetPos = 40;
 /**
  * These are the chassis variables that are used for the driver control
  * period and the autonomous period.
@@ -409,26 +411,28 @@ void tilterControl() {
 Function to deploy the lift arms and tray on match start
 */
 void deployTray() {
-	rollersArms(-40);
+//	rollersArms(-40);
 	//pros::delay(500); //commented out because it may be causing the iq wheels to break
 	int posTemp = 280;
 	liftPosition(posTemp, 30);
 	while (armL.getPosition() < posTemp - 1) {
 		continue;
 	}
-	rollersArms(0);
+//	rollersArms(0);
 	lift(-30);
 	// pros::delay(300);
 	// lift(0);
 	while (true) {
 		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
 			armL.moveVelocity(0);
-			armL.tarePosition();
-
 			armR.moveVelocity(0);
+
+			pros::delay(200);
+
+			armL.tarePosition();
 			armR.tarePosition();
 
-			pros::delay(500);
+			pros::delay(200);
 
 			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
 			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -445,11 +449,14 @@ void deployTray() {
 	tilterPosition(0, 90);
 
 	//lift the arms out of the way of the tray
-	liftPosition(550, 40);
+/*	liftPosition(550, 40);
 	while (armL.getPosition() < 549) {
 		continue;
 	}
 	liftPosition(0, 40);
+}*/
+liftPosition(bPresetPos, 100);
+armUp = false;
 }
 
 /*Function to automatically loads cubes into the lift arms for scoring towerAssist*/
@@ -458,10 +465,10 @@ void towerAssist()
 	if(toggleAssist && !armUp) //if the assist is on then run the following
 	{
 		// bring up cubes first
-		rollersDegrees(100, -360);
+		rollersDegrees(-360, 100);
 		pros::delay(20);
 		//push 1 cube down
-		rollersDegrees(100, 360);
+		rollersDegrees(360, 100);
 	}
 		armUp = true;//Lift arnm will be moving up fter this function so set ArmUp to true
 }
@@ -474,7 +481,7 @@ void presets(string preset) {
 		if (tilterR.getPosition() < -10) {
 			tilterPosition(0, 100);
 		} else {
-			liftPosition(50, 100);
+			liftPosition(bPresetPos, 100);
 			armUp = false;
 		}
 	}
