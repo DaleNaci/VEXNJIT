@@ -222,12 +222,17 @@ void liftControl() {
 	}
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
 		lift(0);
+		if(armL.getPosition() > 100)
+		{
+			armUp = true;
+		}
 	}
 }
 
 void liftPosition(int pos, int speed) {
     armL.moveAbsolute(pos, speed);
     armR.moveAbsolute(-pos, speed);
+
 }
 
 
@@ -464,7 +469,7 @@ void presets(string preset) {
 		if (tilterR.getPosition() < -10) {
 			tilterPosition(0, 100);
 		} else {
-			liftPosition(0, 100);
+			liftPosition(50, 100);
 			armUp = false;
 		}
 	}
@@ -515,7 +520,7 @@ void presetControl() {
 	if (presetY.isPressed()) {
 		presets("Y");
 	}
-	if (toggleAuto.isPressed()) {
+	if (toggleAuto.changedToPressed()) {
 	 presets("left");
  }
 	// if (presetRight.isPressed()) {
@@ -639,7 +644,7 @@ void opcontrol() {
 		liftControl();
 		rollersControl();
 		tilterControl();
-presetControl();
+		presetControl();
 
 		pros::delay(20);
 	}
