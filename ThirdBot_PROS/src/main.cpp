@@ -34,17 +34,17 @@ int8_t ARM_RIGHT_STOP_SWITCH_PORT = 7;
  * These are the different motor variables that are used to move
  * different parts of the robot.
 */
-Motor tilterL(TILTER_LEFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor tilterL(TILTER_LEFT_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
 Motor tilterR(TILTER_RIGHT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 
 Motor armL(LEFT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
-Motor armR(RIGHT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor armR(RIGHT_LIFT_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
 
-Motor rollerarmL(ARM_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
+Motor rollerarmL(ARM_LEFT_ROLLER_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);//Reversed
 Motor rollerarmR(ARM_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
 Motor rollertrayL(TRAY_LEFT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
-Motor rollertrayR(TRAY_RIGHT_ROLLER_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor rollertrayR(TRAY_RIGHT_ROLLER_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
 
 Motor driveFL(LEFT_FRONT_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveBL(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
@@ -80,6 +80,8 @@ bool deployed = false; //has the robot run the deploy function yet
 bool armUp = false; //is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
+
+int bPresetPos = 40;
 /**
  * These are the chassis variables that are used for the driver control
  * period and the autonomous period.
@@ -198,50 +200,51 @@ void driveControl() {
 }
 
 //Task runnable version of driveControl
-void driveControl1(void* param)
-{
-	while(true)
-	{
+void driveControl1(void* param) {
+	while(true) {
 		driveControl();
 		pros::delay(20);
 	}
 }
 
-/**
- * Moves the roller lift. Speed will depend on the speed parameter. The
- * range is -100 to 100.
+/*
+ Moves the roller lift. Speed will depend on the speed parameter. Positive speed
+ moves the lift up, negative speed moves the lift down. The range is -100 to 100.
 */
 void lift(int speed) {
 	armL.moveVelocity(speed * 2);
-	armR.moveVelocity(-speed * 2);
+	armR.moveVelocity(speed * 2);
 }
 
-/**
- * Moves the roller lift to a specified position. Speed will depend on the speed parameter. The
- * range is -100 to 100.
+/*
+ Moves the roller lift to a specified position. Position is based on the pos
+ parameter, positive pos will move the lift pos degrees up from the last tare
+ angle and negative pos will move it pos degrees down from the last tare angle
+ the range is all int numbers; Speed will depend on the speed parameter. The
+ range is -100 to 100.
 */
 void liftPosition(int pos, int speed) {
     armL.moveAbsolute(pos, speed);
-    armR.moveAbsolute(-pos, speed);
+    armR.moveAbsolute(pos, speed);
 }
 
-/**
- * Move the lift up or down, depending on the state of the up and down
- * buttons. If the up button is pressed, the tray will move upwards. If
- * the down button is pressed, the tray will move downwards. The up
- * button has priority.
+/*
+ Moves the lift up or down, depending on the state of the up and down
+ buttons(D pad). If the up button is pressed, the lift will move upwards. If
+ the down button is pressed, the lift will move downwards. The up
+ button has priority.
 */
 void liftControl() {
 	if (liftUp.changedToPressed()) {
 		lift(60);
-		if(armL.getPosition() > 100)
-		{
+		if(armL.getPosition() > 100){
 			armUp = true;
+		} else {
+			armUp = false;
 		}
 	} else if (liftDown.changedToPressed()) {
 		lift(-60);
-		if(armL.getPosition() < 100)
-		{
+		if(armL.getPosition() < 100) {
 			armUp = false;
 		}
 		if (armL.getPosition() < 0) {
@@ -252,23 +255,22 @@ void liftControl() {
 	}
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
 		lift(0);
-		if(armL.getPosition() > 100)
-		{
+		if(armL.getPosition() > 100) {
 			armUp = true;
 		}
 	}
 }
 
-/**
- * Moves both tray roller motors. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+/*
+	Moves both tray rollers. Speed will depend on the speed parameter and positive
+	speed specifies out(Spit) while negative speed specifies in(Grab). The range
+	is -100 to 100.
 */
 void rollersTray(int speed) {
 	rollertrayL.moveVelocity(speed);
-	rollertrayR.moveVelocity(-speed);
+	rollertrayR.moveVelocity(speed);
 }
-
-
+todo: continue fixing motor directions
 /**
  * Moves both arm roller motors. Speed will depend on the speed parameter.
  * The range is -100 to 100.
@@ -298,8 +300,9 @@ void rollersArmsDegrees(int degrees, int speed) {
 	rollerarmR.moveRelative(degrees, speed);
 }
 
-/*Function to move both sets of rollers a specified number of degrees, speed is
-absolute and positive position specifies out while negative position specifies in
+/*
+	Function to move both sets of rollers a specified number of degrees, speed is
+	absolute and positive position specifies out while negative position specifies in
 */
 void rollersDegrees(int degrees, int speed)
 {
@@ -409,26 +412,28 @@ void tilterControl() {
 Function to deploy the lift arms and tray on match start
 */
 void deployTray() {
-	rollersArms(-40);
+//	rollersArms(-40);
 	//pros::delay(500); //commented out because it may be causing the iq wheels to break
 	int posTemp = 280;
 	liftPosition(posTemp, 30);
 	while (armL.getPosition() < posTemp - 1) {
 		continue;
 	}
-	rollersArms(0);
+//	rollersArms(0);
 	lift(-30);
 	// pros::delay(300);
 	// lift(0);
 	while (true) {
 		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
 			armL.moveVelocity(0);
-			armL.tarePosition();
-
 			armR.moveVelocity(0);
+
+			pros::delay(200);
+
+			armL.tarePosition();
 			armR.tarePosition();
 
-			pros::delay(500);
+			pros::delay(200);
 
 			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
 			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -445,11 +450,14 @@ void deployTray() {
 	tilterPosition(0, 90);
 
 	//lift the arms out of the way of the tray
-	liftPosition(550, 40);
+/*	liftPosition(550, 40);
 	while (armL.getPosition() < 549) {
 		continue;
 	}
 	liftPosition(0, 40);
+}*/
+liftPosition(bPresetPos, 100);
+armUp = false;
 }
 
 /*Function to automatically loads cubes into the lift arms for scoring towerAssist*/
@@ -458,10 +466,10 @@ void towerAssist()
 	if(toggleAssist && !armUp) //if the assist is on then run the following
 	{
 		// bring up cubes first
-		rollersDegrees(100, -360);
+		rollersDegrees(-360, 100);
 		pros::delay(20);
 		//push 1 cube down
-		rollersDegrees(100, 360);
+		rollersDegrees(360, 100);
 	}
 		armUp = true;//Lift arnm will be moving up fter this function so set ArmUp to true
 }
@@ -474,7 +482,7 @@ void presets(string preset) {
 		if (tilterR.getPosition() < -10) {
 			tilterPosition(0, 100);
 		} else {
-			liftPosition(50, 100);
+			liftPosition(bPresetPos, 100);
 			armUp = false;
 		}
 	}
