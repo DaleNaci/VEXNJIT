@@ -369,7 +369,7 @@ void rollersControl() {
 		} else {
 			rollers(0);
 		}
-	} else if (tilter1.getPosition() < -180) {
+	} else if (tilter1.getPosition() < -270) {
 		if (intakeIn.isPressed()) {
 			rollers(100);
 		} else if (intakeOut.isPressed()) {
