@@ -76,15 +76,16 @@ ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
 
 //Global boolean variables
-bool deployed = false; //has the robot run the deploy function yet
+bool deployed = false; //Tells the deploy function if the robot has deployed yet. This helps ensure that it is not accidently used a second time during a match
 bool armUp = false; //is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
 
-int bPresetPos = 40;
-/**
- * These are the chassis variables that are used for the driver control
- * period and the autonomous period.
+int bPresetPos = 40;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
+
+/*
+ These are the chassis variables that are used for the driver control
+ period and the autonomous period.
 */
 auto chassis = ChassisControllerBuilder()
 	.withMotors(
@@ -110,10 +111,10 @@ auto profileController = AsyncMotionProfileControllerBuilder()
 	).buildMotionProfileController();
 
 
-/**
- * This code is used at the beginning, when the program starts.
- * This function is mainly used to set up motor brakemodes and encoders,
- * and then generate paths (2D motion profiling) for auton.
+/*
+ This code is used at the beginning, when the program starts.
+ This function is mainly used to set up motor brakemodes and encoders,
+ and then generate paths (2D motion profiling) for auton.
 */
 void initialize() {
 
@@ -187,10 +188,10 @@ pros::c::lcd_initialize();
 	);
 }
 
-/**
- * This runs the drive on an arcade control setup. The left vertical
- * axis moves the drive up and down, while the right horizontal axis
- * point the drive left and right.
+/*
+ This runs the drive on an arcade control setup. The left vertical
+ axis moves the drive up and down, while the right horizontal axis
+ point the drive left and right.
 */
 void driveControl() {
 	chassis->getModel()->arcade(
@@ -199,7 +200,9 @@ void driveControl() {
 	);
 }
 
-//Task runnable version of driveControl
+/*
+ Task runnable version of driveControl
+*/
 void driveControl1(void* param) {
 	while(true) {
 		driveControl();
@@ -208,8 +211,9 @@ void driveControl1(void* param) {
 }
 
 /*
- Moves the roller lift. Speed will depend on the speed parameter. Positive speed
- moves the lift up, negative speed moves the lift down. The range is -100 to 100.
+ Moves the roller lift. Speed will depend on the speed parameter. Positive
+ speed moves the lift up, negative speed moves the lift down. The range is -100
+ to 100.
 */
 void lift(int speed) {
 	armL.moveVelocity(speed * 2);
@@ -262,47 +266,53 @@ void liftControl() {
 }
 
 /*
-	Moves both tray rollers. Speed will depend on the speed parameter and positive
-	speed specifies out(Spit) while negative speed specifies in(Grab). The range
-	is -100 to 100.
+ Moves both tray rollers. Speed will depend on the speed parameter and positive
+ speed specifies out(Spit) while negative speed specifies in(Grab). The range
+ is -100 to 100.
 */
 void rollersTray(int speed) {
 	rollertrayL.moveVelocity(speed);
 	rollertrayR.moveVelocity(speed);
 }
-todo: continue fixing motor directions
-/**
- * Moves both arm roller motors. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+
+/*
+ Moves both arm rollers. Speed will depend on the speed parameter and positive
+ speed specifies out(Spit) while negative speed specifies in(Grab). The range
+ is -100 to 100.
 */
 void rollersArms(int speed) {
-	rollerarmL.moveVelocity(-speed);
+	rollerarmL.moveVelocity(speed);
 	rollerarmR.moveVelocity(speed);
 }
 
-/**
- * Moves both tray roller motors a specified number of degrees. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+/*
+ Moves the tray rollers a specified number of degrees. Degrees is based on
+ the degrees parameter, positive degrees will turn the rollers out(spit) the
+ specified numeber of degrees, negative degrees will turn the rollers in(Grab)
+ the specified numeber of degrees; the range of degrees is all int numbers;
+ Speed will depend on the speed parameter. The range is -100 to 100.
 */
-
 void rollersTrayDegrees(int degrees, int speed) {
 	rollertrayL.moveRelative(degrees, speed);
-	rollertrayR.moveRelative(-degrees, -speed);
+	rollertrayR.moveRelative(degrees, speed);
 }
 
-
-/**
- * Moves both arm roller motors a specified number of degrees. Speed will depend on the speed parameter.
- * The range is -100 to 100.
+/*
+ Moves the arm rollers a specified number of degrees. Degrees is based on
+ the degrees parameter, positive degrees will turn the rollers out(spit) the
+ specified numeber of degrees, negative degrees will turn the rollers in(Grab)
+ the specified numeber of degrees; the range of degrees is all int numbers;
+ Speed will depend on the speed parameter. The range is -100 to 100.
 */
 void rollersArmsDegrees(int degrees, int speed) {
-	rollerarmL.moveRelative(-degrees, -speed);
+	rollerarmL.moveRelative(degrees, speed);
 	rollerarmR.moveRelative(degrees, speed);
 }
 
 /*
-	Function to move both sets of rollers a specified number of degrees, speed is
-	absolute and positive position specifies out while negative position specifies in
+ Function to move both sets of rollers a specified number of degrees(relative),
+ speed is absolute and positive degrees specifies out(spit) while negative degrees
+ specifies in(grab). Speed range is +100 to -100, degrees range is any int value
 */
 void rollersDegrees(int degrees, int speed)
 {
@@ -316,16 +326,15 @@ void rollersDegrees(int degrees, int speed)
 	}
 }
 
-/**
- * Moves the rollers to intake and outtake depending on the state of
- * the up and down buttons. If the up button is pressed, the
- * manipulator will intake, and if the down button is pressed, the
- * manipulator will outtake. The up button has priority.
+/*
+ Moves the rollers to intake and outtake depending on the state of
+ the up and down buttons. If the up button is pressed, the
+ manipulator will intake, and if the down button is pressed, the
+ manipulator will outtake. The up button has priority.
 */
 void rollersControl() {
 	if (armL.getPosition() > 600) {
 		rollersArms(0);
-
 		if (intakeIn.isPressed()) {
 			rollersTray(100);
 		} else if (intakeOut.isPressed()) {
@@ -335,7 +344,6 @@ void rollersControl() {
 		}
 	} else if (armL.getPosition() > 100) {
 		rollersTray(0);
-
 		if (intakeIn.isPressed()) {
 			rollersArms(100);
 		} else if (intakeOut.isPressed()) {
@@ -358,78 +366,85 @@ void rollersControl() {
 	}
 }
 
-/**
- * Moves the tilter. Speed will depend on the speed parameter. The range
- * is -100 to 100. If speed is 0, the motor will stop with a brakeType
- * of "hold."
+/*
+ Moves the tilter. Speed will depend on the speed parameter. Positive speed
+ means the tilter(tray) will move up(stacking position) and negative speed means
+ the tilter(tray) will move down(intake position). The range is -100 to 100. If
+ speed is 0, the motor will stop with a brakeType of "hold."
 */
 void tilter(int speed) {
 	tilterR.moveVelocity(speed);
-	tilterL.moveVelocity(-speed);
+	tilterL.moveVelocity(speed);
 }
 
-
-/**
- * Moves the tilter to a specific absolute position. Position will
- * depend on the pos parameter. Speed will depend on the speed
- * parameter.
+/*
+ Moves the tilter(tray) a specified number of degrees(absoulte from starting
+ position), speed is absolute and positive degrees specifies up(stacking
+ position) while negative degrees specifies the tilter(tray) will move down
+ (intake position). Speed range is +100 to -100, degrees range is any int value
 */
-void tilterPosition(int pos, int speed) {
-	tilterR.moveAbsolute(pos, speed);
-	tilterL.moveAbsolute(-pos, speed);
+void tilterPosition(int degrees, int speed) {
+	tilterR.moveAbsolute(degrees, speed);
+	tilterL.moveAbsolute(degrees, speed);
 }
-/**
- * Move the tray up or down, depending on the state of the up and down
- * buttons. If the up button is pressed, the tray will move upwards. If
- * the down button is pressed, the tray will move downwards. The up
- * button has priority. When the tray is moving up, the closer it is to
- * its resting position, the faster it will be. Once it reaches a
- * certain point in its range of motion, it is capped at a maximum
- * velocity.
-*/
 
+/*
+ Move the tray up or down, depending on the state of the up and down
+ buttons. If the up button is pressed, the tray will move upwards. If
+ the down button is pressed, the tray will move downwards. The up
+ button has priority. When the tray is moving up, the closer it is to
+ its resting position, the faster it will be. Once it reaches a
+ certain point in its range of motion, it is capped at a maximum
+ velocity.
+*/
 void tilterControl() {
 	if (trayUp.changedToPressed()) {
+		//If the the trayUp button is pressed, move the tray up at speed 80
 		tilter(80);
 	} else if (trayDown.changedToPressed()) {
-		if (tilterL.getPosition() > -100) {
+		/*If the tilter(tray) is not all of the way up, then move it down at speed 100
+		while the trayDown button is pressed*/
+		if (tilterL.getPosition() < 100) {
 			tilter(-100);
 		} else {
-			int vel = 50 + (250 + (tilterL.getPosition() + 100)) * 0.2000;
+			int vel = 50 + (250 + (-tilterL.getPosition() + 100)) * 0.2000;
 			if (vel < 50) {
 				vel = 50;
 			}
 			tilter(-vel);
 		}
 	}
+	//When the tray control buttons are released, stop moving the tray
 	if (trayUp.changedToReleased() || trayDown.changedToReleased()) {
 		if (tilterL.getTargetVelocity() != 100) {
 			tilter(0);
 		}
 	}
 }
+
 /*
-Function to deploy the lift arms and tray on match start
+ Function to  deploy the tray, roller arms, and anti-tip on match start or when
+ the right button on the dpad is pressed.
 */
 void deployTray() {
-//	rollersArms(-40);
-	//pros::delay(500); //commented out because it may be causing the iq wheels to break
-	int posTemp = 280;
+	int posTemp = 280;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
 	liftPosition(posTemp, 30);
-	while (armL.getPosition() < posTemp - 1) {
+	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
 		continue;
 	}
-//	rollersArms(0);
-	lift(-30);
-	// pros::delay(300);
-	// lift(0);
+	lift(-30);//Brings the arms back down
+	//Stops the arms when one or both arms triggers the zero button
 	while (true) {
 		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
+			//stops moving the lift arms
 			armL.moveVelocity(0);
 			armR.moveVelocity(0);
 
+			/*Since no brakeMode is set yet, the arms should fall to a natural resting
+			position during the delay and will be synced together when tehy are zeroed*/
 			pros::delay(200);
 
+			//Zeros the lift arm position
 			armL.tarePosition();
 			armR.tarePosition();
 
@@ -437,33 +452,29 @@ void deployTray() {
 
 			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
 			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
-
 			break;
 		}
 	}
+	//Deploy the anti-tip by moving the tray up and then back down
+	int tilterPosTemp = 100;//Position to raise the tilter(tray) to
+	tilterPosition(tilterPosTemp, 90);
 
-//Deploy the anti-tip by moving the tray up and then back down
-	tilterPosition(-100, 90);
-	while (tilterR.getPosition() > -99) {
+	 //halts code exectuion until the tray reachs its intended position with a minus one for error
+	while (tilterR.getPosition() < tilterPosTemp - 1) {
 		continue;
 	}
-	tilterPosition(0, 90);
 
-	//lift the arms out of the way of the tray
-/*	liftPosition(550, 40);
-	while (armL.getPosition() < 549) {
-		continue;
-	}
-	liftPosition(0, 40);
-}*/
-liftPosition(bPresetPos, 100);
-armUp = false;
+	tilterPosition(0, 90);//brings the tilter(tray) back to zero position
+	liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
+	armUp = false;//Since the arms are down, set the armUp flag to false so that TowerAssist knows what to do
 }
 
-/*Function to automatically loads cubes into the lift arms for scoring towerAssist*/
+/*
+ Function to automatically load cubes into the lift arms for scoring towerAssist
+*/
 void towerAssist()
 {
-	if(toggleAssist && !armUp) //if the assist is on then run the following
+	if(toggleAssist && !armUp) //if the assist is on and the arm is not up then run the following
 	{
 		// bring up cubes first
 		rollersDegrees(-360, 100);
@@ -471,54 +482,60 @@ void towerAssist()
 		//push 1 cube down
 		rollersDegrees(360, 100);
 	}
-		armUp = true;//Lift arnm will be moving up fter this function so set ArmUp to true
+	armUp = true;//Lift arm will be moving up after this function so set ArmUp to true
 }
-/**
- * Moves different mechanisms to certain positions based on the
- * parameter, preset. Each preset will call different functions.
+
+/*
+ Moves different mechanisms to certain positions based on the parameter, preset.
+ Each preset will call different functions.
 */
 void presets(string preset) {
 	if (preset == "B") {
-		if (tilterR.getPosition() < -10) {
-			tilterPosition(0, 100);
+		/*
+		 If the tilter(tray) is more than 10 degrees up, bring it down to resting
+		 position(last zeroed position), otherwise bring the arms back down(usually)
+		 to bPresetPos position.
+		*/
+		if (tilterR.getPosition() > 10) {
+			tilterPosition(0, 100);//brings the tilter(tray) to the zero position
 		} else {
-			liftPosition(bPresetPos, 100);
+			liftPosition(bPresetPos, 100);//Bring arms to bPresetPos
 			armUp = false;
 		}
 	}
+	/*
+	 If the towerAssist is enabled, run towerAssist to put 1 cube in the arm
+	 rollers and then bring the arm rollers up to specified heights.
+	 Note: towerAssist does not run on presetY
+	*/
 	if (preset == "X") {
 		towerAssist();
-		liftPosition(445, 100);
+		liftPosition(445, 100);//Shortest tower height
 	}
 	if (preset == "A") {
 		towerAssist();
-		liftPosition(350, 100);
+		liftPosition(350, 100);//Medium tower height
 	}
 	if (preset == "Y") {
-		towerAssist();
-		liftPosition(600, 90);
+		liftPosition(800, 90); // behind the tray
 	}
+	/*
+	 If the right arrow on the dpad is pressed, run the deploy function once
+	 Note: the function runs when the key is changed to pressed
+	*/
 	if (preset == "right" && !deployed) {
-		deployed = true;
-		deployTray();
+		deployed = true;/*sets deployed to true so that the function cannot run
+		again until the program is restarted, this helps ensure that it is not
+		accidently used a second time during a match*/
+		deployTray();//Runs the full deploy tray function
 	}
 	if (preset == "left") {
 		toggleAssist = !toggleAssist;//Toggles the cube tower scoring assist feature
-		 /* pros::c::controller_rumble(, ". - . -");
-		if(toggleAssist)
-		{
-
-		}
-		else
-		{
-
-		}
-*/
-}
+	}
 }
 
-/**
- * Moves the lift to a specific height, depending on the button pressed.
+/*
+ Moves the lift to a specific height, depending on the button pressed.
 */
 void presetControl() {
 	if (presetA.isPressed()) {
@@ -535,28 +552,26 @@ void presetControl() {
 	}
 	if (toggleAuto.changedToPressed()) {
 	 presets("left");
- }
+ 	}
 	if (presetRight.isPressed()) {
 	presets("right");
- }
+ 	}
 }
 
-
-/**
- * Runs the path (pathName). It can take in the "reversed" and
- * "mirrored," but by default it treats both of them as false. This
- * function will hold the code in place until it successfully reaches
- * its target.
+/*
+ Runs the path (pathName). It can take in the "reversed" and
+ "mirrored," but by default it treats both of them as false. This
+ function will hold the code in place until it successfully reaches
+ its target.
 */
 void runPath(string pathName, bool reversed=false, bool mirrored=false) {
 	profileController->setTarget(pathName, reversed, mirrored);
 	profileController->waitUntilSettled();
 }
 
-
-/**
- * Turns the robot clockwise to a certain angle (angle) with a certain
- * velocity (speed).
+/*
+ Turns the robot clockwise to a certain angle (angle) with a certain
+ velocity (speed).
 */
 void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(speed * 2);
@@ -564,6 +579,9 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
+/*
+ Unused function to zero the lift arms with the buttons under each arm
+*/
 /*void waitForArmReset() {
 	while (true) {
 		bool l = armLStop.isPressed();
@@ -582,46 +600,51 @@ void turn(QAngle angle, int speed) {
 	}
 }*/
 
-/**
- * Runs the autonomous function for the auton period.
+/*
+ Runs the autonomous function for the auton period.
 */
 void autonomous() {
+	//whichever runPath contains the true argument will run
 	runPath("1", true);
 	runPath("2");
 
-	deployTray();
-	deployed = true;
+	deployTray();//deploys the tray, roller arms, and anti tip
+	deployed = true;/*sets deployed to true so that the function cannot run
+	again until the program is restarted, this helps ensure that it is not
+	accidently used a second time during a match*/
 }
 
-/**
- * This function is called by the competition switch, and will call all
- * of the control functions that are used during the driver control
- * period.
+/*
+ This function is called by the competition switch, and will call all of the
+ control functions that are used during the driver control period.
 */
 void opcontrol() {
+	//zero the left and right lift arms
 	armL.tarePosition();
 	armR.tarePosition();
+
+	//Set left and right lift arms and left and right lift arm rollers to brakeMode Hold
 	armL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	armR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollerarmR.setBrakeMode(AbstractMotor::brakeMode::hold);
+
 	//Multi threaded driveControl so that the robot can be driven while other code is executed
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 
-//Loop through all Control Function groups to use the robots functionality
+	//Loop through all Control Function groups to use the robots functionality
 	while (true) {
 		liftControl();
 		rollersControl();
 		tilterControl();
 		presetControl();
 
-		pros::delay(20);
+		pros::delay(20);//delay by good convention
 	}
 }
 
-
-/**
- * Unused methods that are required by PROS. They might be used later.
+/*
+ Unused methods that are required by PROS. They might be used later.
 */
 void disabled() {}
 void competition_initialize() {}
