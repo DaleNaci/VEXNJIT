@@ -26,16 +26,16 @@ int8_t RIGHT_FRONT_DRIVE_PORT = 6;
 int8_t RIGHT_BACK_DRIVE_PORT = 13;
 
 //Arm Stop Buttons
-int8_t ARM_LEFT_STOP_SWITCH_PORT = 8;
-int8_t ARM_RIGHT_STOP_SWITCH_PORT = 7;
+int8_t ARM_LEFT_STOP_SWITCH_PORT = 1;
+int8_t ARM_RIGHT_STOP_SWITCH_PORT = 2;
 
 
 /**
  * These are the different motor variables that are used to move
  * different parts of the robot.
 */
-Motor tilterL(TILTER_LEFT_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
-Motor tilterR(TILTER_RIGHT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor tilterL(TILTER_LEFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
+Motor tilterR(TILTER_RIGHT_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
 
 Motor armL(LEFT_LIFT_PORT, false, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);
 Motor armR(RIGHT_LIFT_PORT, true, AbstractMotor::gearset::red, AbstractMotor::encoderUnits::degrees);//Reversed
