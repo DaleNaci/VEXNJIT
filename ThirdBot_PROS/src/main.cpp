@@ -680,9 +680,10 @@ void presetControl() {
 	Used with the ultrasonic sensor to find the center of a pole and turn to it.
 	Length is the number of data points to collect, range [5 is a good number] is
 	the number of data points to sample on each side of a point for an average,
-	decay [0.0 – 1.0] how slowly to decay from raw value.
+	tInterval is the time in milliseconds between samples decay [0.0 – 1.0] how
+	slowly to decay from raw value.
 */
-void centerDetect(int length, int range, double decay) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
+void centerDetect(int length, int range, int tInterval, double decay) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
 {
 	int ns = length;
   double data[ns];
@@ -690,7 +691,8 @@ void centerDetect(int length, int range, double decay) //see also low-pass-filte
   clock_t t4 = clock();
   clock_t t3;
 	int iter;
-  int tin = (int)length * 25 / 28;
+  //int tin = (int)length * 25 / 28;
+	int tin = tInterval;
     for(iter = 0;iter < ns;iter++)
     {
     	data[iter] = UltraSensor.get_value();
