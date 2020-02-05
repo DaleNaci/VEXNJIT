@@ -1,5 +1,4 @@
 #include "main.h"
-
 using namespace std;
 
 /**
@@ -29,6 +28,17 @@ int8_t RIGHT_BACK_DRIVE_PORT = 13;
 int8_t ARM_LEFT_STOP_SWITCH_PORT = 1;
 int8_t ARM_RIGHT_STOP_SWITCH_PORT = 2;
 
+//Shaft encoders
+//Left encoder
+int8_t ARM_LEFT_SHAFT_ENCODER_TOP_PORT = 3;
+int8_t ARM_LEFT_SHAFT_ENCODER_BOTTOM_PORT = ARM_LEFT_SHAFT_ENCODER_TOP_PORT + 1;
+//right encoder
+int8_t ARM_RIGHT_SHAFT_ENCODER_TOP_PORT = 5;
+int8_t ARM_RIGHT_SHAFT_ENCODER_BOTTOM_PORT = ARM_RIGHT_SHAFT_ENCODER_TOP_PORT + 1;
+
+//Ultrasonic
+int8_t ULTRASONIC_PING_PORT = 7;
+int8_t ULTRASONIC_ECHO_PORT = ULTRASONIC_PING_PORT + 1;
 
 /**
  * These are the different motor variables that are used to move
@@ -51,8 +61,15 @@ Motor driveBL(LEFT_BACK_DRIVE_PORT, false, AbstractMotor::gearset::green, Abstra
 Motor driveFR(RIGHT_FRONT_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveBR(RIGHT_BACK_DRIVE_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
+//Sensor Declarartion
+//Button stops
 ADIButton armLStop(ARM_LEFT_STOP_SWITCH_PORT);
 ADIButton armRStop(ARM_RIGHT_STOP_SWITCH_PORT);
+//Shaft Encoders
+ADIEncoder armLEncoder(ARM_LEFT_SHAFT_ENCODER_TOP_PORT, ARM_LEFT_SHAFT_ENCODER_BOTTOM_PORT, false);
+ADIEncoder armREncoder(ARM_RIGHT_SHAFT_ENCODER_TOP_PORT, ARM_RIGHT_SHAFT_ENCODER_BOTTOM_PORT, true);//reversed, might have to switch which one is reversed
+//Ultrasonic
+pros::ADIUltrasonic UltraSensor(ULTRASONIC_PING_PORT, ULTRASONIC_ECHO_PORT);
 
 /**
  * These are the variables that are used to configure controller inputs
@@ -77,9 +94,8 @@ ControllerButton presetY(ControllerDigital::Y);
 
 //Global boolean variables
 bool deployed = false; //Tells the deploy function if the robot has deployed yet. This helps ensure that it is not accidently used a second time during a match
-bool armUp = false; //is the arm up (used to determine whether or not to activate auto tower function)
+bool armUp = false; //Is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
-
 
 int bPresetPos = 40;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
 
@@ -118,7 +134,7 @@ auto profileController = AsyncMotionProfileControllerBuilder()
 */
 void initialize() {
 
-pros::c::lcd_initialize();
+	pros::c::lcd_initialize();
 	rollertrayL.setBrakeMode(AbstractMotor::brakeMode::hold);
 	rollertrayR.setBrakeMode(AbstractMotor::brakeMode::hold);
 	tilterR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -208,6 +224,17 @@ void driveControl1(void* param) {
 		driveControl();
 		pros::delay(20);
 	}
+}
+
+/*
+ Sets the left motors velocity to speedL and the right motors velocity to speedR
+ to turn the chassis
+*/
+void turn2(int speedL, int speedR){
+	driveFL.moveVelocity(speedL);
+	driveBL.moveVelocity(speedL);
+	driveFR.moveVelocity(speedR);
+	driveBR.moveVelocity(speedR);
 }
 
 /*
@@ -314,8 +341,7 @@ void rollersArmsDegrees(int degrees, int speed) {
  speed is absolute and positive degrees specifies out(spit) while negative degrees
  specifies in(grab). Speed range is +100 to -100, degrees range is any int value
 */
-void rollersDegrees(int degrees, int speed)
-{
+void rollersDegrees(int degrees, int speed) {
 	rollersTrayDegrees(degrees, speed);
 	rollersArmsDegrees(degrees, speed);
 	int errorRange = 50; //the range where the function will stop moving the motors, plus or minus errorRange
@@ -324,6 +350,94 @@ void rollersDegrees(int degrees, int speed)
 		// Continue running this loop as long as the motor is not at its goal position
 		pros::c::delay(2);
 	}
+}
+
+/*
+ Calculates the standard deviation of an array given the array, the mean, and
+ the size of the array
+*/
+double calculateSD(double data[], double mean, int size){
+    double standardDeviation = 0.0;
+
+    for(int i = 0; i < size; ++i)
+        standardDeviation += pow(data[i] - mean, 2);
+    return sqrt(standardDeviation / size);
+}
+
+/*
+ Uses the torque exerted by the motors to detect when a cube is present in the
+ outer rollers(arms). This function is to be used in autonomous mode and for
+ programming skills. samples is the number of samples to take when calibrating
+ torque, tInterval is the time in milliseconds between samples, zScore is the z
+ score corresponding to the confidence level(alpha) for the test. Returns 0 when
+ done. Recommended declaration autoCubeGrab(30, 5, 3);
+*/
+int autoCubeGrab(int samples, int tInterval, int zScore) {
+	//set arm rollers to grab
+	rollersArms(-100);
+
+	//initial ize arrays
+  double rollerLTorque[samples];
+	double rollerRTorque[samples];
+
+	//stat variables
+	double meanL = 0; double meanR = 0; double stdL; double stdR;
+
+	//intialize clocks
+  clock_t t4 = clock();
+  clock_t t3;
+
+  //int tin = (int)length * 25 / 28;
+	//generate a baseline
+    for(int iter = 0;iter < samples;iter++)
+    {
+    	rollerLTorque[iter] = rollerarmL.getTorque();
+			rollerRTorque[iter] = rollerarmR.getTorque();
+
+			//calculate the means
+			meanL += rollerLTorque[iter] / samples;
+			meanR += rollerRTorque[iter] / samples;
+
+  		t3 = clock();
+        while((double)(t3-t4) / CLOCKS_PER_SEC < (tInterval *0.001) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
+        {
+ 					t3 = clock();
+          pros::delay(1);
+        }
+        t4 = clock();
+    }
+		stdL = calculateSD(rollerLTorque, meanL, samples);
+		stdR = calculateSD(rollerRTorque, meanR, samples);
+		//end calculation of baseline statistics
+
+		bool rollerLTorqueFlag = false;
+		bool rollerRTorqueFlag = false;
+		/*
+ 		 Runs while loop while the roller torques are not statistically significantly
+ 	 	 greater than what they were when calibrated.
+		*/
+		while(!rollerLTorqueFlag && !rollerRTorqueFlag)
+		{
+			double rollerLTorqueSample = rollerarmL.getTorque();
+			double rollerRTorqueSample = rollerarmR.getTorque();
+			double testStatisticL = (meanL - rollerLTorqueSample) / stdL;
+			double testStatisticR = (meanR - rollerRTorqueSample) / stdR;
+			if(testStatisticL > zScore){
+				rollerLTorqueFlag = true;
+			}else{
+				rollerLTorqueFlag = false;
+			}
+
+			if(testStatisticR > zScore){
+				rollerRTorqueFlag = true;
+			}else{
+				rollerRTorqueFlag = false;
+			}
+		}
+		rollersArms(0);//sets the arm roller speed to zero
+		if(rollerLTorqueFlag && rollerRTorqueFlag){
+			return 0;
+		}
 }
 
 /*
@@ -428,11 +542,11 @@ void tilterControl() {
 */
 void deployTray() {
 	int posTemp = 280;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
-	liftPosition(posTemp, 30);
+	liftPosition(posTemp, 100);
 	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
-		continue;
+		pros::delay(1);
 	}
-	lift(-30);//Brings the arms back down
+	lift(-100);//Brings the arms back down
 	//Stops the arms when one or both arms triggers the zero button
 	while (true) {
 		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
@@ -441,14 +555,18 @@ void deployTray() {
 			armR.moveVelocity(0);
 
 			/*Since no brakeMode is set yet, the arms should fall to a natural resting
-			position during the delay and will be synced together when tehy are zeroed*/
+			position during the delay and will be synced together when they are zeroed*/
 			pros::delay(200);
 
 			//Zeros the lift arm position
 			armL.tarePosition();
 			armR.tarePosition();
 
-			pros::delay(200);
+			//Zeros the shaft encoders on the lift arms
+			armLEncoder.reset();
+			armREncoder.reset();
+
+			pros::delay(100);
 
 			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
 			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -461,7 +579,7 @@ void deployTray() {
 
 	 //halts code exectuion until the tray reachs its intended position with a minus one for error
 	while (tilterR.getPosition() < tilterPosTemp - 1) {
-		continue;
+		pros::delay(1);
 	}
 
 	tilterPosition(0, 90);//brings the tilter(tray) back to zero position
@@ -559,6 +677,121 @@ void presetControl() {
 }
 
 /*
+	Used with the ultrasonic sensor to find the center of a pole and turn to it.
+	Length is the number of data points to collect, range [5 is a good number] is
+	the number of data points to sample on each side of a point for an average,
+	decay [0.0 – 1.0] how slowly to decay from raw value.
+*/
+void centerDetect(int length, int range, double decay) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
+{
+	int ns = length;
+  double data[ns];
+  double clean[ns];
+  clock_t t4 = clock();
+  clock_t t3;
+	int iter;
+  int tin = (int)length * 25 / 28;
+    for(iter = 0;iter < ns;iter++)
+    {
+    	data[iter] = UltraSensor.get_value();
+  		t3 = clock();
+
+        while((double)(t3-t4) / CLOCKS_PER_SEC < (tin *0.001) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
+        {
+ 					t3 = clock();
+					turn2(-20,20);
+          pros::delay(1);
+        }
+        t4 = clock();
+    }
+  turn2(0, 0);
+	//printf("Data: %d",(int)data[1]);
+
+	//If you are trying to figure out how this section works, good luck
+
+	//Calculate coefficients
+  double coefficients[range+1];
+  int i;
+  for (i = 0; i <= range; i++)
+  {
+    coefficients[i] = pow((double)decay, (double)i);
+      //printf("\nCoeff:%f",coefficients[i]);
+  }
+	//printf("Coeffs calcd");
+  // calculate the divisor
+  double divisor = 0;
+  for (i = -range; i <= range; i++)
+  {
+    divisor += coefficients[abs(i)];
+  }
+	//printf("Divisor: %f",divisor);
+  // clean data
+  for (i = range; i < length - range; i++)
+  {
+    double temp = 0;
+    int j;
+    for (j = -range; j <= range; j++)
+    {
+      temp += data[i + j] * coefficients[abs(j)];
+    }
+    clean[i] = temp / divisor;
+      //printf("Clean: %f\n",clean[i]);
+  }
+
+  // find leading and trailing slopes
+  double leadSum = 0;
+  double trailSum = 0;
+  int leadRef = range;
+  int trailRef = length - range - 1;
+  for (i = 1; i <= range; i++)
+  {
+    leadSum += (clean[leadRef] - clean[leadRef + i]) / i;
+    trailSum += (clean[trailRef] - clean[trailRef - i]) / i;
+  }
+
+  //clean edges
+  double leadSlope = leadSum / range;
+  double trailSlope = trailSum / range;
+  for (i = 1; i <= range; i++)
+  {
+    clean[leadRef - i] = clean[leadRef] + leadSlope * i;
+    clean[trailRef + i] = clean[trailRef] + trailSlope * i;
+  }
+    /*for(i=0;i<length;i++)
+    {
+     printf("Cleaned Data: %f\n", clean[i]);
+	 }*/
+
+	 //find the maximum value in the range, this should be the peak of a sine wave generated by looking at the pipe
+	 int pos = 7;
+	 int x;
+	 for(x = 8;x < length-5;x++)
+	 {
+		 if(clean[x] < clean[pos])
+		 {
+			 pos = x;
+		 }
+	 }
+	 //calculate the inverse postition since it will be turnign backwards
+	 ns = length - pos;
+   t4 = clock();
+	 //printf("Ns: %d",ns);
+	 //turn the robot to the intended position using time values
+	 for(iter = 0;iter < ns ;iter++)
+	 {
+		 t3 = clock();
+		 while((double)(t3-t4) / CLOCKS_PER_SEC < (tin *0.001) - 0.000031) //-0.000031 is timing calibration value
+		 {
+			 t3 = clock();
+			 turn2(20,-20);
+			 pros::delay(1);
+		 }
+		 t4 = clock();
+	 }
+	 turn2(0,0);//sets the robots turn speed to zero so it stops turning
+}
+
+/*
  Runs the path (pathName). It can take in the "reversed" and
  "mirrored," but by default it treats both of them as false. This
  function will hold the code in place until it successfully reaches
@@ -604,7 +837,7 @@ void turn(QAngle angle, int speed) {
  Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	//whichever runPath contains the true argument will run
+	//runs the auton path
 	runPath("1", true);
 	runPath("2");
 
