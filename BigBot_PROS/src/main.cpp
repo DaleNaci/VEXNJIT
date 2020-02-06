@@ -520,6 +520,12 @@ void runPath(string pathName, bool reversed=false, bool mirrored=false) {
 }
 
 
+/**
+ * Runs the path (pathName) at a slower pace than normal. It can take in
+ * the "reversed" and "mirrored," but by default it treats both of them
+ * as false. This function will hold the code in place until it
+ * successfully reaches its target.
+*/
 void slowPath(string pathName, bool reversed=false, bool mirrored=false) {
 	slowController->setTarget(pathName, reversed, mirrored);
 	slowController->waitUntilSettled();
