@@ -5,23 +5,23 @@ using namespace std;
 /**
  * These are the variable constants for the ports.
 */
-int8_t LEFT_ROLLER_PORT = 11;
-int8_t RIGHT_ROLLER_PORT = 3;
-int8_t LEFT_LIFT_PORT = 16;
-int8_t RIGHT_LIFT_PORT = 5;
-int8_t TILTER_PORT = 15;
-int8_t RIGHT_DRIVE_1_PORT = 2;
-int8_t RIGHT_DRIVE_2_PORT = 6;
-int8_t RIGHT_DRIVE_3_PORT = 4;
-int8_t RIGHT_DRIVE_4_PORT = 7;
-int8_t LEFT_DRIVE_1_PORT = 18;
-int8_t LEFT_DRIVE_2_PORT = 13;
-int8_t LEFT_DRIVE_3_PORT = 17;
-int8_t LEFT_DRIVE_4_PORT = 14;
+int8_t LEFT_ROLLER_PORT = 16;
+int8_t RIGHT_ROLLER_PORT = 15;
+int8_t LEFT_LIFT_PORT = 18;
+int8_t RIGHT_LIFT_PORT = 13;
+int8_t TILTER_PORT = 17;
+int8_t RIGHT_DRIVE_1_PORT = 14;
+int8_t RIGHT_DRIVE_2_PORT = 11;
+int8_t RIGHT_DRIVE_3_PORT = 1;
+int8_t RIGHT_DRIVE_4_PORT = 2;
+int8_t LEFT_DRIVE_1_PORT = 19;
+int8_t LEFT_DRIVE_2_PORT = 20;
+int8_t LEFT_DRIVE_3_PORT = 10;
+int8_t LEFT_DRIVE_4_PORT = 9;
 
-int8_t RIGHT_ENCODER_PORTS [2] = {6, 7};
-int8_t LEFT_ENCODER_PORTS [2] = {0, 1};
-//
+int8_t RIGHT_ENCODER_PORTS [2] = {0, 1};
+int8_t LEFT_ENCODER_PORTS [2] = {2, 3};
+
 
 /**
  * These are the different motor variables that are used to move
@@ -435,9 +435,9 @@ void pidTurn(double input) {
 	driveL3.tarePosition();
 	driveL4.tarePosition();
 
-	double TARGET = driveL1.getPosition() + angle;
-	double HALFWAY = driveL1.getPosition() + angle / 4;
-	double currentValue = driveL1.getPosition();
+	double TARGET = encoderL.getPosition() + angle;
+	double HALFWAY = encoderL.getPosition() + angle / 4;
+	double currentValue = encoderL.getPosition();
 	double currentError = TARGET - currentValue;
 	double previousError = 0;
 	double difference = encoderL.get_value() - encoderR.get_value();
@@ -448,7 +448,7 @@ void pidTurn(double input) {
 	double kD = 5.000;
 	double kDr = 0.000;
 
-	double maxRate = 7;
+	double maxRate = 16;
 
 	while (fabs(currentError) > 10) {
 		if (angle > 0 && currentValue > HALFWAY) {
@@ -492,7 +492,7 @@ void pidTurn(double input) {
 			}
 		}
 
-		currentValue = driveL1.getPosition();
+		currentValue = encoderL.getPosition();
 		previousError = currentError;
 		currentError = TARGET - currentValue;
 	}
