@@ -10,17 +10,18 @@ int8_t RIGHT_ROLLER_PORT = 3;
 int8_t LEFT_LIFT_PORT = 16;
 int8_t RIGHT_LIFT_PORT = 5;
 int8_t TILTER_PORT = 15;
-int8_t LEFT_DRIVE_1_PORT = 18;
-int8_t LEFT_DRIVE_2_PORT = 13;
-int8_t LEFT_DRIVE_3_PORT = 17;
-int8_t LEFT_DRIVE_4_PORT = 14;
 int8_t RIGHT_DRIVE_1_PORT = 2;
 int8_t RIGHT_DRIVE_2_PORT = 6;
 int8_t RIGHT_DRIVE_3_PORT = 4;
 int8_t RIGHT_DRIVE_4_PORT = 7;
-int SWITCH_PORT = 8;
-int CONFIRM_BUTTON_PORT = 1;
+int8_t LEFT_DRIVE_1_PORT = 18;
+int8_t LEFT_DRIVE_2_PORT = 13;
+int8_t LEFT_DRIVE_3_PORT = 17;
+int8_t LEFT_DRIVE_4_PORT = 14;
 
+int8_t RIGHT_ENCODER_PORTS [2] = {6, 7};
+int8_t LEFT_ENCODER_PORTS [2] = {0, 1};
+//
 
 /**
  * These are the different motor variables that are used to move
@@ -43,6 +44,8 @@ Motor driveL2(LEFT_DRIVE_2_PORT, true, AbstractMotor::gearset::green, AbstractMo
 Motor driveL3(LEFT_DRIVE_3_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveL4(LEFT_DRIVE_4_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
+pros::ADIEncoder encoderR(RIGHT_ENCODER_PORTS[0], RIGHT_ENCODER_PORTS[1], true);
+pros::ADIEncoder encoderL(LEFT_ENCODER_PORTS[0], LEFT_ENCODER_PORTS[1], false);
 
 
 /**
@@ -83,22 +86,12 @@ auto chassis = ChassisControllerBuilder()
 		}
 	).build();
 
-// auto profileController = AsyncMotionProfileControllerBuilder()
-// 	.withLimits(
-// 		{
-// 			0.265,
-// 			0.9,
-// 			5.21
-// 		}
-// 	).withOutput(
-// 		chassis
-// 	).buildMotionProfileController();
 auto profileController = AsyncMotionProfileControllerBuilder()
 	.withLimits(
 		{
-			0.4,
-			1.1,
-			5.4
+			1.268,
+			4.5,
+			5.155
 		}
 	).withOutput(
 		chassis
@@ -140,147 +133,57 @@ void initialize() {
 	driveL3.tarePosition();
 	driveL4.tarePosition();
 
+	encoderL.reset();
+	encoderR.reset();
 
-
-
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{3.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"A"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{2.8_ft, -2.19_ft, 0_deg}
-	// 	},
-	// 	"B_blue"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{2.8_ft, -2.3_ft, 0_deg}
-	// 	},
-	// 	"B_red"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{2.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"C"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{0.5_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"Wall"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{1.7_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"1"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{4.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"2"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{0.24_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"3"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{1.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"I"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{2.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"J"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{1.3_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"K"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{1.0_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"L"
-	// );
-	// profileController->generatePath(
-	// 	{
-	// 		{0_ft, 0_ft, 0_deg},
-	// 		{2.25_ft, 0_ft, 0_deg}
-	// 	},
-	// 	"M"
-	// );
+	pros::lcd::initialize();
 
 	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.9_ft, 0_ft, 0_deg}
+			{4.35_ft, 0_ft, 0_deg}
 		},
 		"1"
 	);
-	slowController->generatePath(
+	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.1_ft, 0_ft, 0_deg}
+			{2.97_ft, 0_ft, 0_deg}
 		},
 		"2"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.1_ft, 0_ft, 0_deg}
+			{1.0_ft, 0_ft, 0_deg}
 		},
 		"3"
 	);
-	profileController->generatePath(
+	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{1.15_ft, 0_ft, 0_deg}
+			{0.7_ft, 0_ft, 0_deg}
 		},
 		"4"
 	);
 	profileController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{2.1_ft, 0_ft, 0_deg},
+			{2.0_ft, 0_ft, 0_deg}
 		},
 		"5"
-	);
-	profileController->generatePath(
-		{
-			{0_ft, 0_ft, 0_deg},
-			{2.25_ft, 0_ft, 0_deg}
-		},
-		"6"
 	);
 	slowController->generatePath(
 		{
 			{0_ft, 0_ft, 0_deg},
-			{0.5_ft, 0_ft, 0_deg}
+			{1.8_ft, 0_ft, 0_deg}
+		},
+		"6"
+	);
+	profileController->generatePath(
+		{
+			{0_ft, 0_ft, 0_deg},
+			{2.2_ft, 0_ft, 0_deg}
 		},
 		"7"
 	);
@@ -369,7 +272,7 @@ void rollersControl() {
 		} else {
 			rollers(0);
 		}
-	} else if (tilter1.getPosition() < -270) {
+	} else if (tilter1.getPosition() < -500) {
 		if (intakeIn.isPressed()) {
 			rollers(100);
 		} else if (intakeOut.isPressed()) {
@@ -521,7 +424,7 @@ void turn(QAngle angle, int speed) {
 
 
 void pidTurn(double input) {
-	double angle = input * 3.78;
+	double angle = input * 5.02;
 
 	driveR1.tarePosition();
 	driveR2.tarePosition();
@@ -537,7 +440,7 @@ void pidTurn(double input) {
 	double currentValue = driveL1.getPosition();
 	double currentError = TARGET - currentValue;
 	double previousError = 0;
-	double difference = driveL1.getPosition() - driveR1.getPosition();
+	double difference = encoderL.get_value() - encoderR.get_value();
 	double accel = true;
 
 	double kP = 1.000;
@@ -545,7 +448,7 @@ void pidTurn(double input) {
 	double kD = 5.000;
 	double kDr = 0.000;
 
-	double maxRate = 16;
+	double maxRate = 7;
 
 	while (fabs(currentError) > 10) {
 		if (angle > 0 && currentValue > HALFWAY) {
@@ -622,73 +525,11 @@ void slowPath(string pathName, bool reversed=false, bool mirrored=false) {
 	slowController->waitUntilSettled();
 }
 
-
 /**
  * Calling this function runs the red auton.
 */
 void red() {
-	// rollers(-100);
-	// runPath("A");
-	// runPath("B_red", true, true);
-	// runPath("Wall", true);
-	// runPath("C");
-	//
-	// pros::delay(1200);
-	//
-	// rollers(0);
-	//
-	// turn(130_deg, 9);
-	// rollers(80);
-	// pros::delay(100);
-	// rollers(0);
-	// runPath("2");
-	// runPath("3", true);
 
-	// tilterPosition(-1000, -50);
-	// while (tilter1.getPosition() > -950) {
-	// 	continue;
-	// }
-	// pros::delay(800);
-	//
-	// runPath("I");
-	// runPath("I");
-	// runPath("J", true);
-	// pros::delay(500);
-	// turn(45_deg, 20);
-
-	rollers(-100);
-	runPath("A");
-	runPath("B_red", true, true);
-	runPath("Wall", true);
-	runPath("C");
-
-	pros::delay(1200);
-
-	rollers(0);
-
-	turn(90_deg, 9);
-
-	runPath("1");
-
-	turn(45_deg, 9);
-
-	rollers(80);
-	pros::delay(100);
-	rollers(0);
-	runPath("2");
-	runPath("3", true);
-
-	tilterPosition(-1000, -50);
-	while (tilter1.getPosition() > -950) {
-		continue;
-	}
-	pros::delay(800);
-
-	runPath("I");
-	runPath("I");
-	runPath("J", true);
-	pros::delay(500);
-	turn(43_deg, 20);
 }
 
 
@@ -696,69 +537,39 @@ void red() {
  * Calling this function runs the blue auton.
 */
 void blue() {
-	rollers(-100);
+	presets("B");
+	rollers(-95);
 	slowPath("1");
 
+	pros::delay(400);
 	rollers(0);
-	pidTurn(40);
-	rollers(-90);
-	slowPath("2");
+	runPath("2", true);
 
-	pros::delay(100);
-	rollers(0);
-	runPath("3", true);
-
-	pidTurn(-33.7);
-	pros::delay(100);
-	rollers(-90);
-	runPath("4");
-
-	pros::delay(200);
-	runPath("5", true);
-
-	rollers(0);
-	pidTurn(180);
+	pidTurn(90);
 	pros::delay(300);
-	runPath("6");
+	runPath("3");
 
 	rollers(-100);
-	slowPath("7");
+	slowPath("4");
 
+	pros::delay(400);
+	rollers(0);
 
+	for (int i = 0; i < 2; i++) {
+		runPath("5", true);
 
-	// rollers(-100);
-	// runPath("A");
-	// runPath("B_blue", true);
-	// runPath("Wall", true);
-	// runPath("C");
-	//
-	// pros::delay(1200);
-	//
-	// rollers(0);
-	//
-	// turn(-90_deg, 9);
-	//
-	// runPath("M");
-	//
-	// turn(-45_deg, 9);
-	//
-	// rollers(40);
-	// pros::delay(800);
-	// rollers(0);
-	// runPath("2");
-	// runPath("3", true);
-	//
-	// tilterPosition(-1000, -40);
-	// while (tilter1.getPosition() > -950) {
-	// 	continue;
-	// }
-	// pros::delay(800);
-	//
-	// runPath("I");
-	// runPath("I");
-	// runPath("J", true);
-	// pros::delay(500);
-	// turn(-45_deg, 20);
+		pidTurn(-30 + (7 * i));
+		pros::delay(200);
+		rollers(-100);
+		slowPath("6");
+
+		pros::delay(200);
+		rollers(0);
+	}
+
+	pidTurn(-155);
+	pros::delay(200);
+	runPath("7");
 
 
 }
@@ -768,48 +579,7 @@ void blue() {
  * Calling this function runs programming skills.
 */
 void progSkills() {
-	rollers(-100);
-	runPath("A");
-	runPath("B_red", true);
-	runPath("Wall", true);
-	runPath("C");
 
-	pros::delay(1200);
-
-	rollers(0);
-
-	turn(-131_deg, 9);
-	rollers(80);
-	pros::delay(100);
-	rollers(0);
-	runPath("2");
-	runPath("3", true);
-
-	tilterPosition(-1000, -50);
-	while (tilter1.getPosition() > -950) {
-		continue;
-	}
-	pros::delay(800);
-
-	runPath("I");
-	runPath("I");
-	runPath("J", true);
-	turn(-131_deg, 12);
-	presets("B");
-	rollers(-100);
-	runPath("K");
-	runPath("L", true);
-	rollers(100);
-	pros::delay(300);
-	rollers(0);
-	presets("A");
-	pros::delay(1500);
-	presets("A");
-	pros::delay(1200);
-	runPath("M");
-	rollers(50);
-	pros::delay(1000);
-	presets("B");
 }
 
 
