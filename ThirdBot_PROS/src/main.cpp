@@ -13,7 +13,7 @@ int8_t LEFT_LIFT_PORT = 4;
 int8_t RIGHT_LIFT_PORT = 3;
 
 //Rollers
-int8_t ARM_LEFT_ROLLER_PORT = 10;
+int8_t ARM_LEFT_ROLLER_PORT = 21;//formerly 10 which is now dead
 int8_t ARM_RIGHT_ROLLER_PORT = 5;
 int8_t TRAY_LEFT_ROLLER_PORT = 8;
 int8_t TRAY_RIGHT_ROLLER_PORT = 7;
@@ -71,6 +71,8 @@ ADIEncoder armREncoder(ARM_RIGHT_SHAFT_ENCODER_TOP_PORT, ARM_RIGHT_SHAFT_ENCODER
 //Ultrasonic
 pros::ADIUltrasonic UltraSensor(ULTRASONIC_PING_PORT, ULTRASONIC_ECHO_PORT);
 
+//pros controller
+pros::Controller master(pros::E_CONTROLLER_MASTER);
 /**
  * These are the variables that are used to configure controller inputs
  * to perform various tasks for the robot.
@@ -368,14 +370,14 @@ double calculateSD(double data[], double mean, int size){
  Uses the torque exerted by the motors to detect when a cube is present in the
  outer rollers(arms). This function is to be used in autonomous mode and for
  programming skills. samples is the number of samples to take when calibrating
- torque, tInterval is the time in milliseconds between samples, zScore is the z
+ torque, tInterval is the time in pros::c::milliseconds between samples, zScore is the z
  score corresponding to the confidence level(alpha) for the test. Returns 0 when
  done. Recommended declaration autoCubeGrab(30, 5, 3);
 */
-int autoCubeGrab(int samples, int tInterval, int zScore) {
+int autoCubeGrab(int samples, int tInterval, double zScore) {
 	//set arm rollers to grab
 	rollersArms(-100);
-
+	rollersTray(-100);
 	//initial ize arrays
   double rollerLTorque[samples];
 	double rollerRTorque[samples];
@@ -384,27 +386,27 @@ int autoCubeGrab(int samples, int tInterval, int zScore) {
 	double meanL = 0; double meanR = 0; double stdL; double stdR;
 
 	//intialize clocks
-  clock_t t4 = clock();
-  clock_t t3;
+  long t4 = pros::c::millis();
+  long t3;
 
   //int tin = (int)length * 25 / 28;
 	//generate a baseline
     for(int iter = 0;iter < samples;iter++)
     {
-    	rollerLTorque[iter] = rollerarmL.getTorque();
-			rollerRTorque[iter] = rollerarmR.getTorque();
+    	rollerLTorque[iter] = rollertrayL.getTorque();
+			rollerRTorque[iter] = rollertrayR.getTorque();
 
 			//calculate the means
 			meanL += rollerLTorque[iter] / samples;
 			meanR += rollerRTorque[iter] / samples;
 
-  		t3 = clock();
-        while((double)(t3-t4) / CLOCKS_PER_SEC < (tInterval *0.001) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
+  		t3 = pros::c::millis();
+        while((double)(t3-t4)  < (tInterval) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
         {
- 					t3 = clock();
+ 					t3 = pros::c::millis();
           pros::delay(1);
         }
-        t4 = clock();
+        t4 = pros::c::millis();
     }
 		stdL = calculateSD(rollerLTorque, meanL, samples);
 		stdR = calculateSD(rollerRTorque, meanR, samples);
@@ -418,26 +420,28 @@ int autoCubeGrab(int samples, int tInterval, int zScore) {
 		*/
 		while(!rollerLTorqueFlag && !rollerRTorqueFlag)
 		{
-			double rollerLTorqueSample = rollerarmL.getTorque();
-			double rollerRTorqueSample = rollerarmR.getTorque();
+			double rollerLTorqueSample = rollertrayL.getTorque();
+			double rollerRTorqueSample = rollertrayR.getTorque();
 			double testStatisticL = (meanL - rollerLTorqueSample) / stdL;
 			double testStatisticR = (meanR - rollerRTorqueSample) / stdR;
-			if(testStatisticL > zScore){
+			if(testStatisticL < zScore){
 				rollerLTorqueFlag = true;
 			}else{
 				rollerLTorqueFlag = false;
 			}
 
-			if(testStatisticR > zScore){
+			if(testStatisticR < zScore){
 				rollerRTorqueFlag = true;
 			}else{
 				rollerRTorqueFlag = false;
 			}
 		}
 		rollersArms(0);//sets the arm roller speed to zero
+		rollersTray(0);//sets the tray roller speed to zero
 		if(rollerLTorqueFlag && rollerRTorqueFlag){
 			return 0;
 		}
+		return 1;
 }
 
 /*
@@ -648,6 +652,11 @@ void presets(string preset) {
 		deployTray();//Runs the full deploy tray function
 	}
 	if (preset == "left") {
+		if(toggleAssist) {
+			master.rumble("-");//If toggle assist is on going off, rumble teo longs
+		}else {
+			master.rumble(".");//If toggle assist is off going on, rumble one short
+		}
 		toggleAssist = !toggleAssist;//Toggles the cube tower scoring assist feature
 	}
 }
@@ -680,37 +689,44 @@ void presetControl() {
 	Used with the ultrasonic sensor to find the center of a pole and turn to it.
 	Length is the number of data points to collect, range [5 is a good number] is
 	the number of data points to sample on each side of a point for an average,
-	tInterval is the time in milliseconds between samples decay [0.0 – 1.0] how
-	slowly to decay from raw value.
+	tInterval is the time in pros::c::milliseconds between samples decay [0.0 – 1.0] how
+	slowly to decay from raw value.Speed determines the turn speed
 */
-void centerDetect(int length, int range, int tInterval, double decay) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
+void centerDetect(int length, int range, int tInterval, double decay, int speed) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
 {
 	int ns = length;
   double data[ns];
   double clean[ns];
-  clock_t t4 = clock();
-  clock_t t3;
+	long t1 = pros::c::millis();
+	long t2 = pros::c::millis();
+  long t3;
 	int iter;
   //int tin = (int)length * 25 / 28;
-	int tin = tInterval;
+	//int tin = tInterval;
     for(iter = 0;iter < ns;iter++)
     {
     	data[iter] = UltraSensor.get_value();
-  		t3 = clock();
-
-        while((double)(t3-t4) / CLOCKS_PER_SEC < (tin *0.001) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
+			if(data[iter] <= 0)
+			{
+				data[iter] = 5000;
+			}
+			//printf("Range: %f m\r\n",data[iter]);
+			t2 = pros::c::millis();
+				printf("\r\n%d, ",(int) (t2 - t1));
+				printf("%d",(int)data[iter]);
+  			t3 = pros::c::millis();
+        while((t3-t1) < (tInterval * (iter + 1))) //-0.000031 is timing calibration value, todo, recalculate
         {
- 					t3 = clock();
-					turn2(-20,20);
+ 					t3 = pros::c::millis();
+					turn2(-speed,speed);
           pros::delay(1);
         }
-        t4 = clock();
     }
   turn2(0, 0);
 	//printf("Data: %d",(int)data[1]);
 
 	//If you are trying to figure out how this section works, good luck
-
+/*
 	//Calculate coefficients
   double coefficients[range+1];
   int i;
@@ -763,34 +779,35 @@ void centerDetect(int length, int range, int tInterval, double decay) //see also
     {
      printf("Cleaned Data: %f\n", clean[i]);
 	 }*/
-
 	 //find the maximum value in the range, this should be the peak of a sine wave generated by looking at the pipe
-	 int pos = 7;
+	/*int pos = 3;
 	 int x;
-	 for(x = 8;x < length-5;x++)
+	 for(x = 4;x < length-4;x++)
 	 {
+
 		 if(clean[x] < clean[pos])
 		 {
 			 pos = x;
 		 }
-	 }
+	 }*/
+	 int pos = 0;
 	 //calculate the inverse postition since it will be turnign backwards
 	 ns = length - pos;
-   t4 = clock();
+   t1 = pros::c::millis();
 	 //printf("Ns: %d",ns);
 	 //turn the robot to the intended position using time values
 	 for(iter = 0;iter < ns ;iter++)
 	 {
-		 t3 = clock();
-		 while((double)(t3-t4) / CLOCKS_PER_SEC < (tin *0.001) - 0.000031) //-0.000031 is timing calibration value
+		 t3 = pros::c::millis();
+		 while((t3 - t1) < (tInterval * (iter + 1))) //-0.000031 is timing calibration value
 		 {
-			 t3 = clock();
-			 turn2(20,-20);
+			 t3 = pros::c::millis();
+			 turn2(speed,-speed);
 			 pros::delay(1);
 		 }
-		 t4 = clock();
 	 }
 	 turn2(0,0);//sets the robots turn speed to zero so it stops turning
+
 }
 
 /*
@@ -840,13 +857,21 @@ void turn(QAngle angle, int speed) {
 */
 void autonomous() {
 	//runs the auton path
-	runPath("1", true);
-	runPath("2");
+	/*runPath("1", true);
+	runPath("2");*/
 
 	deployTray();//deploys the tray, roller arms, and anti tip
 	deployed = true;/*sets deployed to true so that the function cannot run
 	again until the program is restarted, this helps ensure that it is not
 	accidently used a second time during a match*/
+/*
+	int itemp = autoCubeGrab(30, 5, -3);
+
+	rollersDegrees(150, 50);
+*/
+	liftPosition(160,90);
+	pros::delay(1000);
+	centerDetect(50, 5, 30, 0.8, 2);
 }
 
 /*
@@ -854,6 +879,38 @@ void autonomous() {
  control functions that are used during the driver control period.
 */
 void opcontrol() {
+	//runs the auton path
+	/*runPath("1", true);
+	runPath("2");*/
+	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
+
+	deployTray();//deploys the tray, roller arms, and anti tip
+	deployed = true;/*sets deployed to true so that the function cannot run
+	again until the program is restarted, this helps ensure that it is not
+	accidently used a second time during a match*/
+/*
+	int itemp = autoCubeGrab(30, 5, -3);
+
+	rollersDegrees(150, 50);
+*/
+//	liftPosition(160,90);
+	//pros::delay(1000);
+	/*
+	for(int armAngle = 120; armAngle <= 220; armAngle += 20)
+	{
+		printf("\r\narmAngle = %d", armAngle);
+		pros::delay(1000);
+		liftPosition(armAngle,90);
+		for(int run = 1;run < 4; run++)//run 3 times
+		{
+			printf("\r\nrun = %d", run);
+			pros::delay(3000);
+			centerDetect(400, 5, 20, 0.8, 10);
+		}
+	}
+
+}*/
+
 	//zero the left and right lift arms
 	armL.tarePosition();
 	armR.tarePosition();
@@ -865,7 +922,7 @@ void opcontrol() {
 	rollerarmR.setBrakeMode(AbstractMotor::brakeMode::hold);
 
 	//Multi threaded driveControl so that the robot can be driven while other code is executed
-	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
+	//pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 
 	//Loop through all Control Function groups to use the robots functionality
 	while (true) {
