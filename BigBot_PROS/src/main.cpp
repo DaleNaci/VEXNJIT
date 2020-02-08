@@ -1,4 +1,5 @@
 #include "main.h"
+#include <errno.h>
 
 using namespace std;
 
@@ -18,9 +19,6 @@ int8_t LEFT_DRIVE_1_PORT = 19;
 int8_t LEFT_DRIVE_2_PORT = 20;
 int8_t LEFT_DRIVE_3_PORT = 10;
 int8_t LEFT_DRIVE_4_PORT = 9;
-
-int8_t RIGHT_ENCODER_PORTS [2] = {0, 1};
-int8_t LEFT_ENCODER_PORTS [2] = {2, 3};
 
 
 /**
@@ -44,8 +42,8 @@ Motor driveL2(LEFT_DRIVE_2_PORT, true, AbstractMotor::gearset::green, AbstractMo
 Motor driveL3(LEFT_DRIVE_3_PORT, true, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 Motor driveL4(LEFT_DRIVE_4_PORT, false, AbstractMotor::gearset::green, AbstractMotor::encoderUnits::degrees);
 
-pros::ADIEncoder encoderR(RIGHT_ENCODER_PORTS[0], RIGHT_ENCODER_PORTS[1], true);
-pros::ADIEncoder encoderL(LEFT_ENCODER_PORTS[0], LEFT_ENCODER_PORTS[1], false);
+pros::ADIEncoder encoderR('A', 'B', false);
+pros::ADIEncoder encoderL('C', 'D', true);
 
 
 /**
@@ -137,6 +135,8 @@ void initialize() {
 	encoderR.reset();
 
 	pros::lcd::initialize();
+
+	pros::delay(300);
 
 	slowController->generatePath(
 		{
@@ -333,11 +333,8 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "B") {
-		liftPosition(150, 100);
+		liftPosition(100, 100);
 		tilterPosition(0, 100);
-	}
-	if (preset == "Y") {
-		tilterPosition(0, 80);
 	}
 	if (preset == "Left") {
 		liftPosition(0, 100);
@@ -424,33 +421,27 @@ void turn(QAngle angle, int speed) {
 
 
 void pidTurn(double input) {
-	double angle = input * 5.02;
+	double angle = input * 4.93;
 
-	driveR1.tarePosition();
-	driveR2.tarePosition();
-	driveR3.tarePosition();
-	driveR4.tarePosition();
-	driveL1.tarePosition();
-	driveL2.tarePosition();
-	driveL3.tarePosition();
-	driveL4.tarePosition();
+	encoderL.reset();
+	encoderR.reset();
 
-	double TARGET = encoderL.getPosition() + angle;
-	double HALFWAY = encoderL.getPosition() + angle / 4;
-	double currentValue = encoderL.getPosition();
+	double TARGET = encoderL.get_value() + angle;
+	double HALFWAY = encoderL.get_value() + angle / 4;
+	double currentValue = encoderL.get_value();
 	double currentError = TARGET - currentValue;
 	double previousError = 0;
 	double difference = encoderL.get_value() - encoderR.get_value();
 	double accel = true;
 
-	double kP = 1.000;
+	double kP = 5.000;
 	double kI = 0.000;
-	double kD = 5.000;
+	double kD = 0.000;
 	double kDr = 0.000;
 
-	double maxRate = 16;
+	double maxRate = 200;
 
-	while (fabs(currentError) > 10) {
+	while (fabs(currentError) > 5) {
 		if (angle > 0 && currentValue > HALFWAY) {
 			accel = false;
 		} else if (angle < 0 && currentValue < HALFWAY) {
@@ -472,8 +463,8 @@ void pidTurn(double input) {
 			}
 		}
 
-		double left = command - dr;
-		double right = -(command + dr);
+		double left = command;
+		double right = -command;
 
 		driveL1.moveVelocity(left);
 		driveL2.moveVelocity(left);
@@ -487,12 +478,12 @@ void pidTurn(double input) {
 		pros::delay(20);
 
 		if (accel) {
-			if (maxRate < 150) {
-				maxRate += 10;
+			if (maxRate < 50) {
+				maxRate += 1;
 			}
 		}
 
-		currentValue = encoderL.getPosition();
+		currentValue = encoderL.get_value();
 		previousError = currentError;
 		currentError = TARGET - currentValue;
 	}
@@ -594,7 +585,7 @@ void progSkills() {
  * competition. This is only for testing purposes.
 */
 void testAuton() {
-	pidTurn(90);
+	pidTurn(360);
 }
 
 
@@ -620,7 +611,7 @@ void autonSelect(string selected) {
  * autonSelect() function to have that select the correct auton.
 */
 void autonomous() {
-	string SELECTED_AUTON = "blue";
+	string SELECTED_AUTON = "test";
 	autonSelect(SELECTED_AUTON);
 }
 
