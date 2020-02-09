@@ -94,6 +94,18 @@ ControllerButton presetX(ControllerDigital::X);
 ControllerButton presetB(ControllerDigital::B);
 ControllerButton presetY(ControllerDigital::Y);
 
+//Structures
+struct rollers{
+	double outerRMean;
+	double outerLMean;
+	double outerRSD;
+	double outerLSD;
+	double innerRMean;
+	double innerLMean;
+	double innerRSD;
+	double innerLSD;
+};
+
 //Global boolean variables
 bool deployed = false; //Tells the deploy function if the robot has deployed yet. This helps ensure that it is not accidently used a second time during a match
 bool armUp = false; //Is the arm up (used to determine whether or not to activate auto tower function)
@@ -240,6 +252,27 @@ void turn2(int speedL, int speedR){
 }
 
 /*
+ Turns the robot to a specified angle, positive angle means teh robot turns ccw
+ and a negatoive angle means it turns c, speed is the velocity of the motors
+*/
+void turnAngle2(int angle, int speed){
+	turn2(-speed,speed);
+	int ctime = 100;//the conversion from milliseconds to degrees
+	int time = angle * ctime;
+	pros::delay(time);
+}
+
+/*
+ Sets all drive motors velocity to speed, range -100 - 100
+*/
+void move(int speed){
+	driveFL.moveVelocity(speed);
+	driveBL.moveVelocity(speed);
+	driveFR.moveVelocity(speed);
+	driveBR.moveVelocity(speed);
+}
+
+/*
  Moves the roller lift. Speed will depend on the speed parameter. Positive
  speed moves the lift up, negative speed moves the lift down. The range is -100
  to 100.
@@ -367,50 +400,85 @@ double calculateSD(double data[], double mean, int size){
 }
 
 /*
- Uses the torque exerted by the motors to detect when a cube is present in the
- outer rollers(arms). This function is to be used in autonomous mode and for
- programming skills. samples is the number of samples to take when calibrating
- torque, tInterval is the time in pros::c::milliseconds between samples, zScore is the z
- score corresponding to the confidence level(alpha) for the test. Returns 0 when
- done. Recommended declaration autoCubeGrab(30, 5, 3);
+This function calcualtes the statistical variables needed for teh autoCubeGrab
+function. This function is to be used in autonomous mode and for programming
+skills. samples is the number of samples to take when calibrating
+torque, tInterval is the time in pros::c::milliseconds between samples.
+Ex(Rollers roller = rollersInit(30, 10);)
 */
-int autoCubeGrab(int samples, int tInterval, double zScore) {
-	//set arm rollers to grab
+rollers rollersInit(int samples, int tInterval)
+{
+	//set rollers to grab
 	rollersArms(-100);
 	rollersTray(-100);
-	//initial ize arrays
-  double rollerLTorque[samples];
-	double rollerRTorque[samples];
+
+	//initialize arrays
+	double innerLTorque[samples];
+	double innerRTorque[samples];
+	double outerLTorque[samples];
+	double outerRTorque[samples];
 
 	//stat variables
-	double meanL = 0; double meanR = 0; double stdL; double stdR;
+	double meanInnerL = 0; double meanInnerR = 0; double stdInnerL; double stdInnerR; //outer rollers
+	double meanOuterL = 0; double meanOuterR = 0; double stdOuterL; double stdOuterR; //inner rollers
 
 	//intialize clocks
-  long t4 = pros::c::millis();
-  long t3;
+	long t4 = pros::millis();
+	long t3;
 
-  //int tin = (int)length * 25 / 28;
+	//int tin = (int)length * 25 / 28;
 	//generate a baseline
-    for(int iter = 0;iter < samples;iter++)
-    {
-    	rollerLTorque[iter] = rollertrayL.getTorque();
-			rollerRTorque[iter] = rollertrayR.getTorque();
+		for(int iter = 0;iter < samples;iter++)
+		{
+			innerLTorque[iter] = rollertrayL.getTorque();
+			innerRTorque[iter] = rollertrayR.getTorque();
+			outerLTorque[iter] = rollerarmL.getTorque();
+			outerRTorque[iter] = rollerarmR.getTorque();
 
 			//calculate the means
-			meanL += rollerLTorque[iter] / samples;
-			meanR += rollerRTorque[iter] / samples;
+			meanInnerL += innerLTorque[iter] / samples;
+			meanInnerR += innerRTorque[iter] / samples;
+			meanOuterL += outerLTorque[iter] / samples;
+			meanOuterR += outerRTorque[iter] / samples;
 
-  		t3 = pros::c::millis();
-        while((double)(t3-t4)  < (tInterval) - 0.000031) //-0.000031 is timing calibration value, todo, recalculate
-        {
- 					t3 = pros::c::millis();
-          pros::delay(1);
-        }
-        t4 = pros::c::millis();
-    }
-		stdL = calculateSD(rollerLTorque, meanL, samples);
-		stdR = calculateSD(rollerRTorque, meanR, samples);
+
+			t3 = pros::millis();
+				while((int)(t3-t4) < (tInterval)) //-0.000031 is timing calibration value, todo, recalculate
+				{
+					t3 = pros::millis();
+					pros::delay(1);
+				}
+				t4 = pros::millis();
+		}
+		//set the roller arms to 0
+		rollersArms(0);
+		rollersTray(0);
+
+		//Calculate the standard deviations
+		stdInnerL = calculateSD(innerLTorque, meanInnerL, samples);
+		stdInnerR = calculateSD(innerRTorque, meanInnerR, samples);
+		stdOuterL = calculateSD(outerLTorque, meanOuterL, samples);
+		stdOuterR = calculateSD(outerRTorque, meanOuterR, samples);
 		//end calculation of baseline statistics
+
+		//return the calculated statistics
+		rollers roller = {meanOuterR, meanOuterL, stdOuterR, stdOuterL, meanInnerR, meanInnerL, stdInnerL, stdInnerL};
+		return roller;
+}
+
+/*
+ Uses the torque exerted by the motors to detect when a cube is present in the
+ inner rollers(arms). This function is to be used in autonomous mode and for
+ programming skills.r1 is the rollers structure contatiing statisics information
+ zScore is the z score corresponding to the confidence level(alpha) for the test.
+ Returns 0 when done. Recommended declaration autoCubeGrab(roller, -3);
+*/
+int innerRollerBump(rollers r1, double zScore)
+{
+		double meanL = r1.innerLMean;
+		double meanR = r1.innerRMean;
+		double stdL = r1.innerLSD;
+		double stdR = r1.innerRSD;
 
 		bool rollerLTorqueFlag = false;
 		bool rollerRTorqueFlag = false;
@@ -435,13 +503,82 @@ int autoCubeGrab(int samples, int tInterval, double zScore) {
 			}else{
 				rollerRTorqueFlag = false;
 			}
+			pros::delay(2);
 		}
-		rollersArms(0);//sets the arm roller speed to zero
-		rollersTray(0);//sets the tray roller speed to zero
+		//rollersArms(0);//sets the arm roller speed to zero
+		//rollersTray(0);//sets the tray roller speed to zero
 		if(rollerLTorqueFlag && rollerRTorqueFlag){
 			return 0;
 		}
 		return 1;
+}
+
+/*
+ Uses the torque exerted by the motors to detect when a cube is present in the
+ outer rollers(arms). This function is to be used in autonomous mode and for
+ programming skills.r1 is the rollers structure contatiing statisics information
+ zScore is the z score corresponding to the confidence level(alpha) for the test.
+ Returns 0 when done. Recommended declaration autoCubeGrab(roller, 3);
+*/
+int outerRollerBump(rollers r1, double zScore)
+{
+		double meanL = r1.outerLMean;
+		double meanR = r1.outerRMean;
+		double stdL = r1.outerLSD;
+		double stdR = r1.outerRSD;
+
+		bool rollerLTorqueFlag = false;
+		bool rollerRTorqueFlag = false;
+		/*
+ 		 Runs while loop while the roller torques are not statistically significantly
+ 	 	 greater than what they were when calibrated.
+		*/
+		while(!rollerLTorqueFlag && !rollerRTorqueFlag)
+		{
+			double rollerLTorqueSample = rollerarmL.getTorque();
+			double rollerRTorqueSample = rollerarmR.getTorque();
+			double testStatisticL = (meanL - rollerLTorqueSample) / stdL;
+			double testStatisticR = (meanR - rollerRTorqueSample) / stdR;
+			if(testStatisticL < zScore){
+				rollerLTorqueFlag = true;
+			}else{
+				rollerLTorqueFlag = false;
+			}
+
+			if(testStatisticR < zScore){
+				rollerRTorqueFlag = true;
+			}else{
+				rollerRTorqueFlag = false;
+			}
+			pros::delay(2);
+		}
+		//rollersArms(0);//sets the arm roller speed to zero
+		//rollersTray(0);//sets the tray roller speed to zero
+		if(rollerLTorqueFlag && rollerRTorqueFlag){
+			return 0;
+		}
+		return 1;
+}
+/*
+ Uses the torque exerted by the motors to detect when a cube is present in the
+ inner rollers(arms). This function is to be used in autonomous mode and for
+ programming skills.r1 is the rollers structure contatiing statisics information
+ zScore is the z score corresponding to the confidence level(alpha) for the test.
+ Returns 0 when done. Recommended declaration autoCubeGrab(roller, 3);
+*/
+int autoCubeGrab(rollers r1, double zScore)
+{
+		move(20);
+		rollersArms(100);
+		rollersTray(100);
+
+		bool flag = innerRollerBump(r1, zScore);//grab and go forward until the inner rollers are bumped by the cube
+
+		move(0);//stops forward movement of the robot
+		rollersArms(0);//sets the arm roller speed to zero
+		rollersTray(0);//sets the tray roller speed to zero
+		rollersDegrees(150, 50);
+		return flag;
 }
 
 /*
@@ -689,7 +826,7 @@ void presetControl() {
 	Used with the ultrasonic sensor to find the center of a pole and turn to it.
 	Length is the number of data points to collect, range [5 is a good number] is
 	the number of data points to sample on each side of a point for an average,
-	tInterval is the time in pros::c::milliseconds between samples decay [0.0 – 1.0] how
+	tInterval is the time in pros::c::milliseconds between samples minimum is 50 milliseconds, decay [0.0 – 1.0] how
 	slowly to decay from raw value.Speed determines the turn speed
 */
 void centerDetect(int length, int range, int tInterval, double decay, int speed) //see also low-pass-filter-method now at [https://web.archive.org/web/20180922093343/http://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html] (no longer exists)[https://www.robosoup.com/2014/01/cleaning-noisy-time-series-data-low-pass-filter-c.html]
@@ -811,6 +948,41 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
 }
 
 /*
+ This functions serchs for and then navigates towards a  tower using a line
+ follower like algorithm. lowerBound is the distacne a point must be above to
+ trigger the navigation start, upperBound is the value the point must be below,
+ tInterval is the time in milliseconds between samples(minimum of 50(approx:
+ refresh rate of sensor)), turnSpeed is the speed the robot will turn at where
+ positive turnSpeed is clockwise turning and negative turnSpeed is
+ counterclockwise turning, moveSpeed is the speed to move the robot where
+ positive moveSpeed is forward and negative moveSpeed is backward deployDistance
+ is the distance in ultrasonic sensor units to move the arm up at.
+*/
+void towerDetect(int lowerBound, int upperBound, int tInterval, int turnSpeed, int moveSpeed, int deployDistance){
+	turn2(-turnSpeed, turnSpeed);
+	while(UltraSensor.get_value() < lowerBound || UltraSensor.get_value() > upperBound)//turns until it detects an object in the bounding area
+	{
+		pros::delay(tInterval);
+	}
+	long t1, t2;
+	t1 = pros::millis();
+	while(UltraSensor.get_value() > lowerBound && UltraSensor.get_value() < upperBound)//turns until it no longer detects an object in the bounding area
+	{
+		pros::delay(tInterval);
+	}
+	t2 = pros::millis();
+	turn2(turnSpeed, -turnSpeed);
+	pros::delay((int)((t2 - t1) / 2)); // turn to the center of the object
+	move(moveSpeed);
+	while(UltraSensor.get_value() < deployDistance)
+	{
+		pros::delay(tInterval);
+	}
+
+
+}
+
+/*
  Runs the path (pathName). It can take in the "reversed" and
  "mirrored," but by default it treats both of them as false. This
  function will hold the code in place until it successfully reaches
@@ -851,15 +1023,15 @@ void turn(QAngle angle, int speed) {
 		}
 	}
 }*/
+//backup auton path for one cube push, antitip wheel will push
+/*runPath("1", true);
+runPath("2");*/
 
 /*
  Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	//runs the auton path
-	/*runPath("1", true);
-	runPath("2");*/
-
+	toggleAssist = false;//turns off tower assist
 	deployTray();//deploys the tray, roller arms, and anti tip
 	deployed = true;/*sets deployed to true so that the function cannot run
 	again until the program is restarted, this helps ensure that it is not
@@ -869,6 +1041,70 @@ void autonomous() {
 
 	rollersDegrees(150, 50);
 */
+	int zScore = -3;//value for comparison in roller bump tests
+	rollers roller;
+	roller = rollersInit(30, 10);
+	//grab sube 1
+	move(50);
+	rollersArms(-100);
+	outerRollerBump(roller, -3);
+	autoCubeGrab(roller, zScore);
+	move(-50);
+	pros::delay(500);
+	move(0);
+	liftPosition(200, 100);
+
+	//put cube 1 in the tower
+	turnAngle2(45,50);
+	towerDetect(1000, 1500, 50, 10, 50, 500);
+	presets("X");
+	move(50);
+	pros::delay(200);
+	move(0);
+	rollersArms(70);
+	move(-50);
+	pros::delay(500);
+	move(0);
+
+	//grab cube 2
+	presets("B");
+	move(50);
+	rollersArms(-100);
+	outerRollerBump(roller, -3);
+	autoCubeGrab(roller, zScore);
+	move(-50);
+	pros::delay(500);
+	move(0);
+	liftPosition(200, 100);
+
+	//go forward until outer rollers hit cube
+	//autocube grab
+	//Backup a bit
+	//arms up (maybee 200 degrees)
+	//turn ccw 45 Degrees
+	//tower detect medium tower
+	//presets("X")
+	//go forward
+	//eject cube
+	//Backup
+	//presets("B")
+	//go forward and auto cube grab
+	//Backup a little
+	//presets("A")
+	//turn around
+	//go forward until it hits the green cube(Bottem left)
+	//arms to 200 Degrees
+	//turn ccw 45 Degrees
+	//tower detect
+	//presets("A")
+	//go forward
+	//eject cube
+	//Backup
+	//presets("B")
+	//go forward and auto cube grab
+	//Backup a little
+	//presets("A")
+
 	liftPosition(160,90);
 	pros::delay(1000);
 	centerDetect(50, 5, 30, 0.8, 2);
@@ -879,6 +1115,7 @@ void autonomous() {
  control functions that are used during the driver control period.
 */
 void opcontrol() {
+	toggleAssist = true;//turns on tower assist
 	//runs the auton path
 	/*runPath("1", true);
 	runPath("2");*/
