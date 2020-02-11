@@ -95,7 +95,7 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "B") {
-		liftPosition(150, 100);
+		liftPosition(140, 100);
 		tilterPosition(0, 100);
 	}
 	if (preset == "Left") {
@@ -159,7 +159,7 @@ void turn(QAngle angle, int speed) {
 
 
 void pidTurn(double input) {
-	double angle = input * 3.200;
+	double angle = input * 2.974;
 
 	encoderL.reset();
 	encoderR.reset();
@@ -172,7 +172,7 @@ void pidTurn(double input) {
 	double difference = encoderL.get_value() - encoderR.get_value();
 	double accel = true;
 
-	double kP = 5.000;
+	double kP = 6.000;
 	double kI = 0.000;
 	double kD = 10.000;
 	double kDr = 0.000;
@@ -216,7 +216,7 @@ void pidTurn(double input) {
 		pros::delay(20);
 
 		if (accel) {
-			if (maxRate < 50) {
+			if (maxRate < 45) {
 				maxRate += 1;
 			}
 		}
