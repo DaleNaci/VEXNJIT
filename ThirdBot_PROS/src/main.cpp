@@ -1044,7 +1044,7 @@ void autonomous() {
 	int zScore = -3;//value for comparison in roller bump tests
 	rollers roller;
 	roller = rollersInit(30, 10);
-	//grab sube 1
+	//grabs cube 1
 	move(50);
 	rollersArms(-100);
 	outerRollerBump(roller, -3);
@@ -1119,6 +1119,7 @@ void opcontrol() {
 	//runs the auton path
 	/*runPath("1", true);
 	runPath("2");*/
+	//Multi threaded driveControl so that the robot can be driven while other code is executed
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 
 	deployTray();//deploys the tray, roller arms, and anti tip
