@@ -96,7 +96,7 @@ void initialize() {
  * autonSelect() function to have that select the correct auton.
 */
 void autonomous() {
-	string SELECTED_AUTON = "test";
+	string SELECTED_AUTON = "blue";
 	autonSelect(SELECTED_AUTON);
 }
 

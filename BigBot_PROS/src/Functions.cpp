@@ -95,7 +95,7 @@ void presets(string preset) {
 		}
 	}
 	if (preset == "B") {
-		liftPosition(100, 100);
+		liftPosition(150, 100);
 		tilterPosition(0, 100);
 	}
 	if (preset == "Left") {
