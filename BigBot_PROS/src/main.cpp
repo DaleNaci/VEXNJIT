@@ -8,12 +8,6 @@ using namespace std;
 
 
 /**
- * These are the chassis variables that are used for the driver control
- * period and the autonomous period.
-*/
-
-
-/**
  * This code is used at the beginning, when the program starts.
  * This function is mainly used to set up motor brakemodes and encoders,
  * and then generate paths (2D motion profiling) for auton.

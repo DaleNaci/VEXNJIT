@@ -87,10 +87,23 @@ void presetControl();
 */
 void tilterControl();
 
+/**
+ * This runs the drive on an arcade control setup. The left vertical
+ * axis moves the drive up and down, while the right horizontal axis
+ * point the drive left and right.
+*/
 void driveControl();
 
+/**
+ * Turns the robot clockwise to a certain angle (angle) with a certain
+ * velocity (speed).
+*/
 void turn(QAngle angle, int speed);
 
+/**
+ * Turns the robot clockwise to a certain angle (input) using the PD
+ * part of a PID controller with a high level of precision.
+*/
 void pidTurn(double input);
 
 /**
