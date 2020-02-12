@@ -257,9 +257,10 @@ void turn2(int speedL, int speedR){
 */
 void turnAngle2(int angle, int speed){
 	turn2(-speed,speed);
-	int ctime = 100;//the conversion from milliseconds to degrees
-	int time = angle * ctime;
+	float ctime = 26000 / 10 / 360;//the conversion from milliseconds to degrees
+	int time = (int)(angle * ctime) + 100;
 	pros::delay(time);
+	turn2(0,0);
 }
 
 /*
@@ -410,7 +411,9 @@ rollers rollersInit(int samples, int tInterval)
 {
 	//set rollers to grab
 	rollersArms(-100);
+	pros::delay(20);
 	rollersTray(-100);
+	pros::delay(20);
 
 	//initialize arrays
 	double innerLTorque[samples];
@@ -475,6 +478,7 @@ rollers rollersInit(int samples, int tInterval)
 */
 int innerRollerBump(rollers r1, double zScore)
 {
+	//pros::delay(200);
 		double meanL = r1.innerLMean;
 		double meanR = r1.innerRMean;
 		double stdL = r1.innerLSD;
@@ -569,10 +573,10 @@ int outerRollerBump(rollers r1, double zScore)
 int autoCubeGrab(rollers r1, double zScore)
 {
 		move(20);
-		rollersArms(100);
-		rollersTray(100);
+		rollersArms(-100);
+		rollersTray(-100);
 
-		bool flag = innerRollerBump(r1, zScore);//grab and go forward until the inner rollers are bumped by the cube
+		int flag = innerRollerBump(r1, zScore);//grab and go forward until the inner rollers are bumped by the cube
 
 		move(0);//stops forward movement of the robot
 		rollersArms(0);//sets the arm roller speed to zero
@@ -716,7 +720,7 @@ void deployTray() {
 	}
 	//Deploy the anti-tip by moving the tray up and then back down
 	int tilterPosTemp = 100;//Position to raise the tilter(tray) to
-	tilterPosition(tilterPosTemp, 90);
+	/*tilterPosition(tilterPosTemp, 90);
 
 	 //halts code exectuion until the tray reachs its intended position with a minus one for error
 	while (tilterR.getPosition() < tilterPosTemp - 1) {
@@ -724,7 +728,7 @@ void deployTray() {
 	}
 
 	tilterPosition(0, 90);//brings the tilter(tray) back to zero position
-	liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
+	*/liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
 	armUp = false;//Since the arms are down, set the armUp flag to false so that TowerAssist knows what to do
 }
 
@@ -959,27 +963,49 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
  is the distance in ultrasonic sensor units to move the arm up at.
 */
 void towerDetect(int lowerBound, int upperBound, int tInterval, int turnSpeed, int moveSpeed, int deployDistance){
-	turn2(-turnSpeed, turnSpeed);
-	while(UltraSensor.get_value() < lowerBound || UltraSensor.get_value() > upperBound)//turns until it detects an object in the bounding area
+//turn2(0,0);
+turn2(-3,3);
+
+ /*while(true)
 	{
 		pros::delay(tInterval);
+		printf("Range: %f m\r\n",(float)UltraSensor.get_value());
+	}*/
+	while(!(UltraSensor.get_value() > lowerBound && UltraSensor.get_value() < upperBound))//turns until it detects an object in the bounding area
+	{
+		pros::delay(tInterval);
+		printf("Range: %f m\r\n",(float)UltraSensor.get_value());
 	}
-	long t1, t2;
-	t1 = pros::millis();
-	while(UltraSensor.get_value() > lowerBound && UltraSensor.get_value() < upperBound)//turns until it no longer detects an object in the bounding area
+		turn2(-turnSpeed, turnSpeed);
+	float x = UltraSensor.get_value();
+	while(x >= (float)UltraSensor.get_value())
 	{
+		x = (float)UltraSensor.get_value();
+			printf("Range: %f m\r\n",(float)x);
+		pros::delay(30);
+	}
+	turn2(0,0);
+/*	long t1, t2;
+	t1 = pros::millis();
+	/*bool a = false;
+	while(a || (UltraSensor.get_value() > lowerBound && UltraSensor.get_value() < upperBound))//turns until it no longer detects an object in the bounding area
+	{
+		a = false;
+		if(UltraSensor.get_value() == -1)
+		{
+			a = true;
+		}
 		pros::delay(tInterval);
+		printf("Range: %f m\r\n",(float)UltraSensor.get_value());
 	}
 	t2 = pros::millis();
 	turn2(turnSpeed, -turnSpeed);
 	pros::delay((int)((t2 - t1) / 2)); // turn to the center of the object
-	move(moveSpeed);
+move(moveSpeed);
 	while(UltraSensor.get_value() < deployDistance)
 	{
 		pros::delay(tInterval);
-	}
-
-
+	}*/
 }
 
 /*
@@ -1041,42 +1067,139 @@ void autonomous() {
 
 	rollersDegrees(150, 50);
 */
+	move(-50);//make sure the robot is against the wall
 	int zScore = -3;//value for comparison in roller bump tests
+	int zScore2 = -1;
 	rollers roller;
-	roller = rollersInit(30, 10);
-	//grabs cube 1
-	move(50);
+	//rollersArms(-100);
+	//rollersTray(-100);
+	//pros::delay(200);
 	rollersArms(-100);
-	outerRollerBump(roller, -3);
-	autoCubeGrab(roller, zScore);
-	move(-50);
-	pros::delay(500);
+	rollersTray(-100);
+	//pros::delay(50);
+	roller = rollersInit(30, 10);//calibrate the rollers
 	move(0);
-	liftPosition(200, 100);
+	//grabs cube 1
+
+	rollersArms(-100);
+	rollersTray(-100);
+
+	//pros::delay(50);
+	move(50);
+	outerRollerBump(roller, zScore);
+	autoCubeGrab(roller, zScore2);
+	move(50);
+	pros::delay(150);
+	move(0);
+	liftPosition(110, 100);
 
 	//put cube 1 in the tower
 	turnAngle2(45,50);
-	towerDetect(1000, 1500, 50, 10, 50, 500);
-	presets("X");
+	//pros::delay(2000);
 	move(50);
 	pros::delay(200);
 	move(0);
-	rollersArms(70);
-	move(-50);
+	rollersArms(100);
 	pros::delay(500);
+	rollersArms(0);
+	//pros::delay(2000);
+	turnAngle2(15,50);
+	liftPosition(200, 100);
+	//pros::delay(2000);
+	towerDetect(100, 500, 30, 1, 20, 300);
+	//pros::delay(2000);
+	move(-50);
+	pros::delay(200);
 	move(0);
-
-	//grab cube 2
-	presets("B");
+	roller = rollersInit(30, 10);//calibrate the rollers
+	liftPosition(bPresetPos, 100);
 	move(50);
 	rollersArms(-100);
-	outerRollerBump(roller, -3);
+	rollersTray(-100);
+	outerRollerBump(roller, zScore);
+	autoCubeGrab(roller, zScore2);
+	move(0);
+	pros::delay(500);
+	move(-50);
+	pros::delay(600);
+	move(0);
+	presets("X");
+	pros::delay(200);
+	//pros::delay(2000);
+	move(50);
+	//pros::delay(2000);
+	pros::delay(900);
+//	pros::delay(2000);
+	move(0);
+	//pros::delay(2000);
+	rollersArms(70);
+	pros::delay(1500);
+	rollersArms(0);
+	move(-50);
+
+	pros::delay(2300);
+	move(0);
+
+
+	//pros::delay(2000);
+	turnAngle2(95, -50);
+	liftPosition(115, 100);
+	//pros::delay(2000);
+	towerDetect(600, 1000, 30, 1, 20, 300);
+	//pros::delay(2000);
+	/*move(-50);
+	pros::delay(200);
+	move(0);*/
+	rollersArms(-100);
+	rollersTray(-100);
+	pros::delay(50);
+	roller = rollersInit(30, 10);//calibrate the rollers
+	liftPosition(bPresetPos, 100);
+	move(50);
+	rollersArms(-100);
+	rollersTray(-100);
+	pros::delay(50);
+	int i = outerRollerBump(roller, zScore);
+	autoCubeGrab(roller, zScore2);
+	move(0);
+	pros::delay(500);
+	turnAngle2(7,50);
+	move(-50);
+	pros::delay(700);
+	move(0);
+	presets("A");
+	//pros::delay(2000);
+	move(50);
+	//pros::delay(2000);
+	pros::delay(800);
+//	pros::delay(2000);
+	move(0);
+	//pros::delay(2000);
+	rollersArms(70);
+	pros::delay(500);
+	move(-50);
+
+	pros::delay(800);
+	move(0);
+/*
+	//grab cube 2
+	presets("B");
+	pros::delay(2000);
+	move(50);
+	//pros::delay(2000);
+	rollersArms(-100);
+	rollersTray(-100);
+	//pros::delay(2000);
+	outerRollerBump(roller, zScore);
+
 	autoCubeGrab(roller, zScore);
 	move(-50);
 	pros::delay(500);
 	move(0);
+	pros::delay(2000);
 	liftPosition(200, 100);
-
+	pros::delay(2000);
+*/
 	//go forward until outer rollers hit cube
 	//autocube grab
 	//Backup a bit
@@ -1115,6 +1238,14 @@ void autonomous() {
  control functions that are used during the driver control period.
 */
 void opcontrol() {
+/*	int tInterval = 30;
+	while(true)
+	 {
+		 pros::delay(tInterval);
+		 printf("Range: %f m\r\n",(float)UltraSensor.get_value());
+	 }*/
+	//turnAngle2(100000,50);
+	//pros::delay(5000);
 	toggleAssist = true;//turns on tower assist
 	//runs the auton path
 	/*runPath("1", true);
