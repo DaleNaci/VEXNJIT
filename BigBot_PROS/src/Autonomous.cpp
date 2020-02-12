@@ -5,8 +5,132 @@
 #include <string>
 
 
-void red() {
+std::string SELECTED_AUTON = "blue";
 
+void auton_initialize(std::string auton) {
+	if (auton == "red") {
+
+	} else if (auton == "blue") {
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{4.25_ft, 0_ft, 0_deg}
+			},
+			"1"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{2.63_ft, 0_ft, 0_deg}
+			},
+			"2"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.0_ft, 0_ft, 0_deg}
+			},
+			"3"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.7_ft, 0_ft, 0_deg}
+			},
+			"4"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.8_ft, 0.7_ft, 43.5_deg}
+			},
+			"5"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.48_ft, 0_ft, 0_deg}
+			},
+			"6"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.257_ft, 0_ft, 0_deg}
+			},
+			"7"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.63_ft, 0_ft, 0_deg}
+			},
+			"8"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.8_ft, 0_ft, 0_deg}
+			},
+			"9"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{2.5_ft, 0_ft, 0_deg}
+			},
+			"10"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.3_ft, 0_ft, 0_deg}
+			},
+			"11"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{0.3_ft, 0_ft, 0_deg}
+			},
+			"12"
+		);
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.5_ft, 0_ft, 0_deg}
+			},
+			"13"
+		);
+	} else if (auton == "prog") {
+		slowController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{3.5_ft, 0_ft, 0_deg}
+			},
+			"1"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.0_ft, 0_ft, 0_deg}
+			},
+			"2"
+		);
+		profileController->generatePath(
+			{
+				{0_ft, 0_ft, 0_deg},
+				{1.0_ft, 1.0_ft, 0_deg}
+			},
+			"3"
+		);
+	} else if (auton == "testAuton") {
+
+	}
+}
+
+void red() {
+	
 }
 
 void blue() {
