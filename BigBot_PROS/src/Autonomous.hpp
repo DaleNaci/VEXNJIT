@@ -5,6 +5,10 @@
 #define AUTONOMOUS_HPP
 
 
+extern std::string SELECTED_AUTON;
+
+void auton_initialize(std::string auton);
+
 /**
  * Calling this function runs the red auton.
 */
