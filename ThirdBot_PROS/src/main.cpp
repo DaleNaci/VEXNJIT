@@ -827,6 +827,22 @@ void presetControl() {
 }
 
 /*
+ This function is used for testing to get ultrasonic sensor vaules printed to
+ terminal. Values can be accessed with putty see pros docs debug for details.
+ tInterval is the time in milliseconds between samples, liftArmPos is the
+ position to raise the arm too(number of degreees / 5 above the start position)
+*/
+void ultraScanner(int tIntervl, in liftArmPos){
+	liftPosition(liftArmPos, 50);
+	pros::delay(1000);
+	while(true)
+	 {
+		 pros::delay(tInterval);
+		 printf("Range: %f m\r\n",(float)UltraSensor.get_value());
+	 }
+}
+
+/*
 	Used with the ultrasonic sensor to find the center of a pole and turn to it.
 	Length is the number of data points to collect, range [5 is a good number] is
 	the number of data points to sample on each side of a point for an average,
@@ -842,8 +858,6 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
 	long t2 = pros::c::millis();
   long t3;
 	int iter;
-  //int tin = (int)length * 25 / 28;
-	//int tin = tInterval;
     for(iter = 0;iter < ns;iter++)
     {
     	data[iter] = UltraSensor.get_value();
@@ -1036,26 +1050,6 @@ void turn(QAngle angle, int speed) {
 	chassis->setMaxVelocity(200);
 }
 
-/*
- Unused function to zero the lift arms with the buttons under each arm
-*/
-/*void waitForArmReset() {
-	while (true) {
-		bool l = armLStop.isPressed();
-		bool r = armRStop.isPressed();
-
-		if (l) {
-			armL.moveVelocity(0);
-		}
-		if (r) {
-			armR.moveVelocity(0);
-		}
-
-		if(l && r) {
-			break;
-		}
-	}
-}*/
 //backup auton path for one cube push, antitip wheel will push
 /*runPath("1", true);
 runPath("2");*/
@@ -1069,52 +1063,57 @@ void autonomous() {
 	deployed = true;/*sets deployed to true so that the function cannot run
 	again until the program is restarted, this helps ensure that it is not
 	accidently used a second time during a match*/
-/*
-	int itemp = autoCubeGrab(30, 5, -3);
 
-	rollersDegrees(150, 50);
-*/
-	move(-50);//make sure the robot is against the wall
-	int zScore = -3;//value for comparison in roller bump tests
+	//make sure the robot is against the wall
+	move(-50);
+	pros::delay(100);
+
+	//value for comparison in roller bump tests
+	int zScore = -3;
 	int zScore2 = -1;
+	//Create the roller object
 	rollers roller;
-	//rollersArms(-100);
-	//rollersTray(-100);
-	//pros::delay(200);
+	//et all rollers to full intake speed
 	rollersArms(-100);
 	rollersTray(-100);
-	//pros::delay(50);
-	roller = rollersInit(30, 10);//calibrate the rollers
+	//calibrate the rollers
+	roller = rollersInit(30, 10);
+	//Stop moving forward
 	move(0);
+
 	//grabs cube 1
 
+	//Set all rollers to full intake speed
 	rollersArms(-100);
 	rollersTray(-100);
-
-	//pros::delay(50);
+	//Start moving forward
 	move(50);
+	//Move forard until theouter roller bumps the cube
 	outerRollerBump(roller, zScore);
+	//Grb the cube until it hits the inner rollers and then spit it out a bit
 	autoCubeGrab(roller, zScore2);
+	//go forward a bit
 	move(50);
 	pros::delay(150);
 	move(0);
+	//lift the arms up to 110 so the cube is off the ground
 	liftPosition(110, 100);
 
 	//put cube 1 in the tower
 	turnAngle2(45,50);
-	//pros::delay(2000);
+
 	move(50);
 	pros::delay(200);
 	move(0);
 	rollersArms(100);
 	pros::delay(500);
 	rollersArms(0);
-	//pros::delay(2000);
+
 	turnAngle2(10,50);
 	liftPosition(200, 100);
-	//pros::delay(2000);
+
 	towerDetect(100, 500, 30, 1, 20, 300);
-	//pros::delay(2000);
+
 	move(-50);
 	pros::delay(200);
 	move(0);
@@ -1132,20 +1131,20 @@ void autonomous() {
 	move(0);
 	presets("X");
 	pros::delay(200);
-	//pros::delay(2000);
+
 	move(50);
-	//pros::delay(2000);
+
 	pros::delay(900);
-//	pros::delay(2000);
+
 	move(0);
-	//pros::delay(2000);
+
 	rollersArms(70);
 	pros::delay(1500);
 	rollersArms(0);
 	//end tower 1
 
 
-	//turnAngle2(5,50);
+
 //back align on wall
 	move(-90);
 	pros::delay(4000);
@@ -1154,15 +1153,15 @@ void autonomous() {
 	move(50);
 	pros::delay(1800);
 	move(0);
-	//pros::delay(2000);
+
 	turnAngle2(95, -50);
 	liftPosition(115, 100);
-	//pros::delay(2000);
+//find tower 2
 	towerDetect(600, 1000, 30, 1, 20, 300);
-	//pros::delay(2000);
-	/*move(-50);
-	pros::delay(200);
-	move(0);*/
+/*Problem where it sees an image of tower 2 early and senses teh center as the
+right most edge. Temporary solution is to rerun towerDetect
+*/
+	towerDetect(600, 1000, 30, 1, 20, 300);
 	rollersArms(-100);
 	rollersTray(-100);
 	pros::delay(50);
@@ -1172,22 +1171,22 @@ void autonomous() {
 	rollersArms(-100);
 	rollersTray(-100);
 	pros::delay(50);
-	int i = outerRollerBump(roller, zScore);
+	outerRollerBump(roller, zScore);
 	autoCubeGrab(roller, zScore2);
 	move(0);
 	pros::delay(500);
-	//turnAngle2(7,50);
+
 	move(-50);
 	pros::delay(700);
 	move(0);
 	presets("A");
-	//pros::delay(2000);
+
 	move(50);
-	//pros::delay(2000);
+
 	pros::delay(800);
-//	pros::delay(2000);
+
 	move(0);
-	//pros::delay(2000);
+
 
 	rollersArms(70);
 	pros::delay(500);
@@ -1196,25 +1195,7 @@ void autonomous() {
 	move(-50);
 	pros::delay(800);
 	move(0);
-/*
-	//grab cube 2
-	presets("B");
-	pros::delay(2000);
-	move(50);
-	//pros::delay(2000);
-	rollersArms(-100);
-	rollersTray(-100);
-	//pros::delay(2000);
-	outerRollerBump(roller, zScore);
 
-	autoCubeGrab(roller, zScore);
-	move(-50);
-	pros::delay(500);
-	move(0);
-	pros::delay(2000);
-	liftPosition(200, 100);
-	pros::delay(2000);
-*/
 	//go forward until outer rollers hit cube
 	//autocube grab
 	//Backup a bit
@@ -1254,18 +1235,10 @@ void autonomous() {
  control functions that are used during the driver control period.
 */
 void opcontrol() {
-	int tInterval = 30;
-	while(true)
-	 {
-		 pros::delay(tInterval);
-		 printf("Range: %f m\r\n",(float)UltraSensor.get_value());
-	 }
-	//turnAngle2(100000,50);
-	//pros::delay(5000);
+	//ultraScanner(30, 100);//used to get ultrasonic sensor values for testing
+
 	toggleAssist = true;//turns on tower assist
-	//runs the auton path
-	/*runPath("1", true);
-	runPath("2");*/
+
 	//Multi threaded driveControl so that the robot can be driven while other code is executed
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 
@@ -1273,28 +1246,6 @@ void opcontrol() {
 	deployed = true;/*sets deployed to true so that the function cannot run
 	again until the program is restarted, this helps ensure that it is not
 	accidently used a second time during a match*/
-/*
-	int itemp = autoCubeGrab(30, 5, -3);
-
-	rollersDegrees(150, 50);
-*/
-//	liftPosition(160,90);
-	//pros::delay(1000);
-	/*
-	for(int armAngle = 120; armAngle <= 220; armAngle += 20)
-	{
-		printf("\r\narmAngle = %d", armAngle);
-		pros::delay(1000);
-		liftPosition(armAngle,90);
-		for(int run = 1;run < 4; run++)//run 3 times
-		{
-			printf("\r\nrun = %d", run);
-			pros::delay(3000);
-			centerDetect(400, 5, 20, 0.8, 10);
-		}
-	}
-
-}*/
 
 	//zero the left and right lift arms
 	armL.tarePosition();
