@@ -720,7 +720,7 @@ void deployTray() {
 	}
 	//Deploy the anti-tip by moving the tray up and then back down
 	int tilterPosTemp = 100;//Position to raise the tilter(tray) to
-	/*tilterPosition(tilterPosTemp, 90);
+ tilterPosition(tilterPosTemp, 90);
 
 	 //halts code exectuion until the tray reachs its intended position with a minus one for error
 	while (tilterR.getPosition() < tilterPosTemp - 1) {
@@ -728,7 +728,7 @@ void deployTray() {
 	}
 
 	tilterPosition(0, 90);//brings the tilter(tray) back to zero position
-	*/liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
+	liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
 	armUp = false;//Since the arms are down, set the armUp flag to false so that TowerAssist knows what to do
 }
 
@@ -978,11 +978,18 @@ turn2(-3,3);
 	}
 		turn2(-turnSpeed, turnSpeed);
 	float x = UltraSensor.get_value();
-	while(x >= (float)UltraSensor.get_value())
+	long t1 = pros::millis();
+	bool ignore = true;
+	while(x >= (float)UltraSensor.get_value() || ignore)
 	{
 		x = (float)UltraSensor.get_value();
-			printf("Range: %f m\r\n",(float)x);
-		pros::delay(30);
+		printf("Range: %f m\r\n",(float)x);
+		ignore = false;
+		if(pros::millis() - t1 < 500 && ((x < lowerBound) || (x > upperBound)))
+		{
+			ignore = true;
+		}
+		pros::delay(tInterval);
 	}
 	turn2(0,0);
 /*	long t1, t2;
@@ -1103,7 +1110,7 @@ void autonomous() {
 	pros::delay(500);
 	rollersArms(0);
 	//pros::delay(2000);
-	turnAngle2(15,50);
+	turnAngle2(10,50);
 	liftPosition(200, 100);
 	//pros::delay(2000);
 	towerDetect(100, 500, 30, 1, 20, 300);
@@ -1116,7 +1123,7 @@ void autonomous() {
 	move(50);
 	rollersArms(-100);
 	rollersTray(-100);
-	outerRollerBump(roller, zScore);
+	outerRollerBump(roller, zScore);//grab a second cube
 	autoCubeGrab(roller, zScore2);
 	move(0);
 	pros::delay(500);
@@ -1135,12 +1142,18 @@ void autonomous() {
 	rollersArms(70);
 	pros::delay(1500);
 	rollersArms(0);
-	move(-50);
+	//end tower 1
 
-	pros::delay(2300);
+
+	//turnAngle2(5,50);
+//back align on wall
+	move(-90);
+	pros::delay(4000);
 	move(0);
-
-
+//go forward
+	move(50);
+	pros::delay(1800);
+	move(0);
 	//pros::delay(2000);
 	turnAngle2(95, -50);
 	liftPosition(115, 100);
@@ -1163,7 +1176,7 @@ void autonomous() {
 	autoCubeGrab(roller, zScore2);
 	move(0);
 	pros::delay(500);
-	turnAngle2(7,50);
+	//turnAngle2(7,50);
 	move(-50);
 	pros::delay(700);
 	move(0);
@@ -1175,10 +1188,12 @@ void autonomous() {
 //	pros::delay(2000);
 	move(0);
 	//pros::delay(2000);
+
 	rollersArms(70);
 	pros::delay(500);
-	move(-50);
+	rollersArms(0);
 
+	move(-50);
 	pros::delay(800);
 	move(0);
 /*
@@ -1227,10 +1242,11 @@ void autonomous() {
 	//go forward and auto cube grab
 	//Backup a little
 	//presets("A")
-
+/*
 	liftPosition(160,90);
 	pros::delay(1000);
 	centerDetect(50, 5, 30, 0.8, 2);
+	*/
 }
 
 /*
@@ -1238,12 +1254,12 @@ void autonomous() {
  control functions that are used during the driver control period.
 */
 void opcontrol() {
-/*	int tInterval = 30;
+	int tInterval = 30;
 	while(true)
 	 {
 		 pros::delay(tInterval);
 		 printf("Range: %f m\r\n",(float)UltraSensor.get_value());
-	 }*/
+	 }
 	//turnAngle2(100000,50);
 	//pros::delay(5000);
 	toggleAssist = true;//turns on tower assist
