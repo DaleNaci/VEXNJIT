@@ -79,17 +79,20 @@ void liftControl() {
 	if (liftUp.changedToReleased() || liftDown.changedToReleased()) {
 		lift(0);
 	}
+	if (trayUp.changedToPressed()) {
+		liftPosition(0, 100);
+	}
 }
 
 void presets(string preset) {
 	if (preset == "X") {
-		tilterPosition(-670, -100);
+		tilterPosition(-750, -100);
 		if (tilter1.getPosition() < -240) {
 			liftPosition(730, 100);
 		}
 	}
 	if (preset == "A") {
-		tilterPosition(-670, -100);
+		tilterPosition(-750, -100);
 		if (tilter1.getPosition() < -240) {
 			liftPosition(930, 100);
 		}
@@ -159,7 +162,7 @@ void turn(QAngle angle, int speed) {
 
 
 void pidTurn(double input) {
-	double angle = input * 2.974;
+	double angle = input * 2.97;
 
 	encoderL.reset();
 	encoderR.reset();
@@ -174,10 +177,10 @@ void pidTurn(double input) {
 
 	double kP = 6.000;
 	double kI = 0.000;
-	double kD = 10.000;
+	double kD = 11.500;
 	double kDr = 0.000;
 
-	double maxRate = 20;
+	double maxRate = 21;
 
 	while (fabs(currentError) > 5) {
 		if (angle > 0 && currentValue > HALFWAY) {
