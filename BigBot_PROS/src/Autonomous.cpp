@@ -342,10 +342,10 @@ void red() {
 	profileController->setTarget("9", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(182);
+	pidTurn(195);
 	pros::delay(1200);
 	slowController->setTarget("10");
-	rollersPosition(120, 40);
+	rollersPosition(60, 40);
 	slowController->waitUntilSettled();
 
 	presets("Left");
@@ -367,6 +367,7 @@ void red() {
 	slowController->setTarget("12");
 	slowController->waitUntilSettled();
 
+	pros::delay(1000);
 	slowController->setTarget("12");
 	slowController->waitUntilSettled();
 
@@ -375,7 +376,7 @@ void red() {
 
 	presets("B");
 	presets("Left");
-	pidTurn(60);
+	pidTurn(71);
 }
 
 void blue() {
@@ -389,7 +390,7 @@ void blue() {
 	profileController->setTarget("2", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(77);
+	pidTurn(100);
 	pros::delay(300);
 	profileController->setTarget("3");
 	profileController->waitUntilSettled();
@@ -426,13 +427,13 @@ void blue() {
 	pidTurn(-173);
 	pros::delay(1200);
 	slowController->setTarget("10");
-	rollersPosition(170, 40);
+	rollersPosition(60, 40);
 	slowController->waitUntilSettled();
 
 	presets("Left");
 	slowController->setTarget("11");
 	slowController->waitUntilSettled();
-	while (tilter1.getPosition() > -1090) {
+	while (tilter1.getPosition() > -1100) {
 		if (tilter1.getPosition() > -250) {
 			tilter(-100);
 		} else {
@@ -448,6 +449,7 @@ void blue() {
 	slowController->setTarget("12");
 	slowController->waitUntilSettled();
 
+	pros::delay(1000);
 	slowController->setTarget("12");
 	slowController->waitUntilSettled();
 
