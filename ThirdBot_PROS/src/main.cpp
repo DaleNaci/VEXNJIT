@@ -111,7 +111,7 @@ bool deployed = false; //Tells the deploy function if the robot has deployed yet
 bool armUp = false; //Is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
-int bPresetPos = 40;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
+int bPresetPos = 60;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
 
 /*
  These are the chassis variables that are used for the driver control
@@ -476,7 +476,7 @@ rollers rollersInit(int samples, int tInterval)
  zScore is the z score corresponding to the confidence level(alpha) for the test.
  Returns 0 when done. Recommended declaration autoCubeGrab(roller, -3);
 */
-int innerRollerBump(rollers r1, double zScore)
+int innerRollerBump(rollers r1, double zScore, int maxTime)
 {
 	//pros::delay(200);
 		double meanL = r1.innerLMean;
@@ -486,11 +486,13 @@ int innerRollerBump(rollers r1, double zScore)
 
 		bool rollerLTorqueFlag = false;
 		bool rollerRTorqueFlag = false;
+		long t1;
+		t1 = pros::millis();
 		/*
  		 Runs while loop while the roller torques are not statistically significantly
  	 	 greater than what they were when calibrated.
 		*/
-		while(!rollerLTorqueFlag && !rollerRTorqueFlag)
+		while((!rollerLTorqueFlag && !rollerRTorqueFlag) && ((int)(pros::millis() - t1) < maxTime))
 		{
 			double rollerLTorqueSample = rollertrayL.getTorque();
 			double rollerRTorqueSample = rollertrayR.getTorque();
@@ -511,7 +513,9 @@ int innerRollerBump(rollers r1, double zScore)
 		}
 		//rollersArms(0);//sets the arm roller speed to zero
 		//rollersTray(0);//sets the tray roller speed to zero
-		if(rollerLTorqueFlag && rollerRTorqueFlag){
+		if((int)(pros::millis() - t1 >= maxTime)){
+			return 2;
+		}else if(rollerLTorqueFlag && rollerRTorqueFlag){
 			return 0;
 		}
 		return 1;
@@ -524,7 +528,7 @@ int innerRollerBump(rollers r1, double zScore)
  zScore is the z score corresponding to the confidence level(alpha) for the test.
  Returns 0 when done. Recommended declaration autoCubeGrab(roller, 3);
 */
-int outerRollerBump(rollers r1, double zScore)
+int outerRollerBump(rollers r1, double zScore, int maxTime)
 {
 		double meanL = r1.outerLMean;
 		double meanR = r1.outerRMean;
@@ -533,11 +537,14 @@ int outerRollerBump(rollers r1, double zScore)
 
 		bool rollerLTorqueFlag = false;
 		bool rollerRTorqueFlag = false;
+
+		long t1;
+		t1 = pros::millis();
 		/*
  		 Runs while loop while the roller torques are not statistically significantly
  	 	 greater than what they were when calibrated.
 		*/
-		while(!rollerLTorqueFlag && !rollerRTorqueFlag)
+		while((!rollerLTorqueFlag && !rollerRTorqueFlag) && ((int)(pros::millis() - t1) < maxTime))
 		{
 			double rollerLTorqueSample = rollerarmL.getTorque();
 			double rollerRTorqueSample = rollerarmR.getTorque();
@@ -558,7 +565,9 @@ int outerRollerBump(rollers r1, double zScore)
 		}
 		//rollersArms(0);//sets the arm roller speed to zero
 		//rollersTray(0);//sets the tray roller speed to zero
-		if(rollerLTorqueFlag && rollerRTorqueFlag){
+		if((int)(pros::millis() - t1 >= maxTime)){
+			return 2;
+		}else if(rollerLTorqueFlag && rollerRTorqueFlag){
 			return 0;
 		}
 		return 1;
@@ -572,21 +581,28 @@ int outerRollerBump(rollers r1, double zScore)
  false for putting it in the tray. Returns 0 when done. Recommended declaration
  autoCubeGrab(roller, 3, false);
 */
-int autoCubeGrab(rollers r1, double zScore,bool eject)
+int autoCubeGrab(rollers r1, double zScore,bool eject, int maxTime)
 {
 		move(20);
 		rollersArms(-100);
 		rollersTray(-100);
 
-		int flag = innerRollerBump(r1, zScore);//grab and go forward until the inner rollers are bumped by the cube
-
+		int flag = innerRollerBump(r1, zScore,maxTime);//grab and go forward until the inner rollers are bumped by the cube
+if(flag == 2)
+{
+	move(0);//stops forward movement of the robot
+	rollersArms(0);//sets the arm roller speed to zero
+	rollersTray(0);//sets the tray roller speed to zero
+	return 2;
+	pros::delay(60000);
+}
 		move(0);//stops forward movement of the robot
 		rollersArms(0);//sets the arm roller speed to zero
 		rollersTray(0);//sets the tray roller speed to zero
 		if(eject){
 			rollersDegrees(150, 50);
 		}else{
-			rollersDegrees(-720, 50);
+			rollersDegrees(-720, 100);
 		}
 		return flag;
 }
@@ -692,8 +708,13 @@ void tilterControl() {
  the right button on the dpad is pressed.
 */
 void deployTray() {
-	int posTemp = 800;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
-	liftPosition(posTemp, 100);
+	int posTemp = 200;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
+	liftPosition(posTemp, 20);
+	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
+		pros::delay(1);
+	}
+	posTemp = 800;
+	liftPosition(posTemp, 80);
 	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
 		pros::delay(1);
 	}
@@ -702,11 +723,15 @@ void deployTray() {
 	while (true) {
 		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
 			//stops moving the lift arms
-			armL.moveVelocity(0);
-			armR.moveVelocity(0);
+			armL.moveVelocity(-10);
+			armR.moveVelocity(-10);
 
 			/*Since no brakeMode is set yet, the arms should fall to a natural resting
 			position during the delay and will be synced together when they are zeroed*/
+			pros::delay(200);
+
+			armL.moveVelocity(0);
+			armR.moveVelocity(0);
 			pros::delay(200);
 
 			//Zeros the lift arm position
@@ -1066,7 +1091,7 @@ runPath("2");*/
  Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	bool blue = true;//if its running on the blue side this is true
+	bool blue = false;//if its running on the blue side this is true
 	toggleAssist = false;//turns off tower assist
 	move(-50);
 	deployTray();//deploys the tray, roller arms, and anti tip
@@ -1076,7 +1101,7 @@ void autonomous() {
 
 	//make sure the robot is against the wall
 	move(-50);
-	pros::delay(100);
+	pros::delay(500);
 
 	//value for comparison in roller bump tests
 	int zScore = -3;
@@ -1099,8 +1124,16 @@ void autonomous() {
 	//Start moving forward
 	move(50);
 	//Move forard until theouter roller bumps the cube
-	outerRollerBump(roller, zScore);
-	autoCubeGrab(roller, zScore2, false);
+	int i = outerRollerBump(roller, zScore, 4000);
+	if(i == 2)
+	{
+		move(0);
+		rollersArms(0);//sets the arm roller speed to zero
+		rollersTray(0);//sets the tray roller speed to zero
+		pros::delay(60000);
+	}
+
+	autoCubeGrab(roller, zScore2, false, 2000);
 
 /*	rollersArms(-100);
 	rollersTray(-100);
@@ -1127,7 +1160,7 @@ void autonomous() {
 	pros::delay(500);
 	rollersArms(0);*///comment
 	//pros::delay(2000);
-	liftPosition(200, 100);
+	liftPosition(230, 100);
 	if(blue){
 		turnAngle2(10,50);
 	}else{
@@ -1135,9 +1168,9 @@ void autonomous() {
 	}
 
 	if(blue){
-	towerDetect(100, 500, 30, 1, 20, 300);
+	towerDetect(100, 700, 30, 1, 20, 300);
 	}else{
-		towerDetect(100, 500, 30, -1, 20, 300);
+		towerDetect(100, 700, 30, -1, 20, 300);
 	}
 
 	//pros::delay(2000);
@@ -1149,8 +1182,8 @@ void autonomous() {
 	move(50);
 	rollersArms(-100);
 	rollersTray(-100);
-	outerRollerBump(roller, zScore);//grab a second cube
-	autoCubeGrab(roller, zScore2, true);
+	outerRollerBump(roller, zScore, 10000);//grab a second cube
+	autoCubeGrab(roller, zScore2, true, 10000);
 	move(0);
 	pros::delay(500);
 	move(-50);
@@ -1326,8 +1359,8 @@ void opcontrol() {
 	//accidently used a second time during a match*/
 
 	//zero the left and right lift arms
-	armL.tarePosition();
-	armR.tarePosition();
+	//armL.tarePosition();
+	//armR.tarePosition();
 
 	//Set left and right lift arms and left and right lift arm rollers to brakeMode Hold
 	armL.setBrakeMode(AbstractMotor::brakeMode::hold);
