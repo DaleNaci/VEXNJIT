@@ -10,6 +10,11 @@ using namespace std;
 //These are the driver assist functions
 
 /*
+ Functionm to deploy the anti-tip by lifting teh tray up and then lowering it
+*/
+void deployAntitip(void* param);
+
+/*
  Function to  deploy the tray, roller arms, and anti-tip on match start or when
  the right arrow button on the dpad is pressed.
 */

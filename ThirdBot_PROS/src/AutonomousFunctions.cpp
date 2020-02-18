@@ -23,29 +23,24 @@ int autoCubeGrab(rollers r1, double zScore,bool eject, int maxTime)
 		rollersTray(-100);
 
 		int flag = innerRollerBump(r1, zScore,maxTime);//grab and go forward until the inner rollers are bumped by the cube
-if(flag == 2)
-{
-	move(0);//stops forward movement of the robot
-	rollersArms(0);//sets the arm roller speed to zero
-	rollersTray(0);//sets the tray roller speed to zero
-	return 2;
-	pros::delay(60000);
-}
-		move(0);//stops forward movement of the robot
-		rollersArms(0);//sets the arm roller speed to zero
-		rollersTray(0);//sets the tray roller speed to zero
-		if(eject){
-			rollersDegrees(150, 50);
-		}else{
-			rollersDegrees(-720, 100);
+		if(flag == 2)
+		{
+			move(0);//stops forward movement of the robot
+			rollersArms(0);//sets the arm roller speed to zero
+			rollersTray(0);//sets the tray roller speed to zero
+			return 2;
+			pros::delay(60000);
 		}
-		return flag;
+				move(0);//stops forward movement of the robot
+				rollersArms(0);//sets the arm roller speed to zero
+				rollersTray(0);//sets the tray roller speed to zero
+				if(eject){
+					rollersDegrees(150, 50);
+				}else{
+					rollersDegrees(-720, 100);
+				}
+				return flag;
 }
-
-
-
-
-
 
 /*
 	Used with the ultrasonic sensor to find the center of a pole and turn to it.
@@ -63,7 +58,7 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
 	long t2 = pros::c::millis();
   long t3;
 	int iter;
-    for(iter = 0;iter < ns;iter++)
+  for(iter = 0;iter < ns;iter++)
     {
     	data[iter] = UltraSensor.get_value();
 			if(data[iter] <= 0)
@@ -81,7 +76,7 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
 					turn2(-speed,speed);
           pros::delay(1);
         }
-    }
+   		}
   turn2(0, 0);
 	//printf("Data: %d",(int)data[1]);
 
@@ -171,15 +166,15 @@ void centerDetect(int length, int range, int tInterval, double decay, int speed)
 }
 
 /*
- This functions serchs for and then navigates towards a  tower using a line
- follower like algorithm. lowerBound is the distacne a point must be above to
- trigger the navigation start, upperBound is the value the point must be below,
- tInterval is the time in milliseconds between samples(minimum of 50(approx:
- refresh rate of sensor)), turnSpeed is the speed the robot will turn at where
- positive turnSpeed is clockwise turning and negative turnSpeed is
- counterclockwise turning, moveSpeed is the speed to move the robot where
- positive moveSpeed is forward and negative moveSpeed is backward deployDistance
- is the distance in ultrasonic sensor units to move the arm up at.
+ This functions serchs for a tower using the ultrasonic sensor. lowerBound is
+ the distacne a point must be above to trigger the navigation start, upperBound
+ is the value the point must be below, tInterval is the time in milliseconds
+ between samples(minimum of 50(approx: refresh rate of sensor)), turnSpeed is
+ the speed the robot will turn at where positive turnSpeed is clockwise turning
+ and negative turnSpeed is counterclockwise turning, moveSpeed is the speed to
+ move the robot where positive moveSpeed is forward and negative moveSpeed is
+ backward deployDistance is the distance in ultrasonic sensor units to move the
+ arm up at.
 */
 void towerDetect(int lowerBound, int upperBound, int tInterval, int turnSpeed, int moveSpeed, int deployDistance){
 //turn2(0,0);

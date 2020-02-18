@@ -9,7 +9,6 @@
 
 void auton(bool blue)
 {
-//bool blue = false;//if its running on the blue side this is true
   toggleAssist = false;//turns off tower assist
   move(-50);
   deployTray();//deploys the tray, roller arms, and anti tip
@@ -19,7 +18,7 @@ void auton(bool blue)
 
   //make sure the robot is against the wall
   move(-50);
-  pros::delay(500);
+  //pros::delay(500);
 
   //value for comparison in roller bump tests
   int zScore = -3;
@@ -208,49 +207,7 @@ void auton(bool blue)
   pros::delay(800);
   move(0);
   */
-  /*
-  //grab cube 2
-  presets("B");
-  pros::delay(2000);
-  move(50);
-  //pros::delay(2000);
-  rollersArms(-100);
-  rollersTray(-100);
-  //pros::delay(2000);
-  outerRollerBump(roller, zScore);
-  */
-  //go forward until outer rollers hit cube
-  //autocube grab
-  //Backup a bit
-  //arms up (maybee 200 degrees)
-  //turn ccw 45 Degrees
-  //tower detect medium tower
-  //presets("X")
-  //go forward
-  //eject cube
-  //Backup
-  //presets("B")
-  //go forward and auto cube grab
-  //Backup a little
-  //presets("A")
-  //turn around
-  //go forward until it hits the green cube(Bottem left)
-  //arms to 200 Degrees
-  //turn ccw 45 Degrees
-  //tower detect
-  //presets("A")
-  //go forward
-  //eject cube
-  //Backup
-  //presets("B")
-  //go forward and auto cube grab
-  //Backup a little
-  //presets("A")
-  /*
-  liftPosition(160,90);
-  pros::delay(1000);
-  centerDetect(50, 5, 30, 0.8, 2);
-  */
+
 }
 
 void autonBlue(){

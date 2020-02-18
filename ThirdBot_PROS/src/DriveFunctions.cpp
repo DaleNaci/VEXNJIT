@@ -1,6 +1,7 @@
 #include "main.h"
-#include "DriveFunctions.hpp"
+#include "Variables.hpp"
 #include "Motors.hpp"
+#include "DriveFunctions.hpp"
 
 /*
  Sets the left motors velocity to speedL and the right motors velocity to speedR
@@ -26,6 +27,16 @@ void turnAngle2(int angle, int speed){
 }
 
 /*
+ Turns the robot clockwise to a certain angle (angle) with a certain
+ velocity (speed).
+*/
+void turn(QAngle angle, int speed) {
+	chassis->setMaxVelocity(speed * 2);
+	chassis->turnAngle(angle / 2.2);
+	chassis->setMaxVelocity(200);
+}
+
+/*
  Sets all drive motors velocity to speed, range -100 - 100
 */
 void move(int speed){
@@ -34,9 +45,3 @@ void move(int speed){
 	driveFR.moveVelocity(speed);
 	driveBR.moveVelocity(speed);
 }
-
-/*
- Moves the roller lift. Speed will depend on the speed parameter. Positive
- speed moves the lift up, negative speed moves the lift down. The range is -100
- to 100.
-*/

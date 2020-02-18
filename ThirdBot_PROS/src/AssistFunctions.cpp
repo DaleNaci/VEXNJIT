@@ -11,51 +11,9 @@
 //These are the driver assist functions
 
 /*
- Function to  deploy the tray, roller arms, and anti-tip on match start or when
- the right arrow button on the dpad is pressed.
+ Functionm to deploy the anti-tip by lifting the tray up and then lowering it
 */
-void deployTray() {
-	int posTemp = 200;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
-	liftPosition(posTemp, 20);
-	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
-		pros::delay(1);
-	}
-	posTemp = 800;
-	liftPosition(posTemp, 80);
-	while (armL.getPosition() < posTemp - 1) { //halts code exectuion until the arms reach their intended position with a minus one for error
-		pros::delay(1);
-	}
-	lift(-100);//Brings the arms back down
-	//Stops the arms when one or both arms triggers the zero button
-	while (true) {
-		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
-			//stops moving the lift arms
-			armL.moveVelocity(-10);
-			armR.moveVelocity(-10);
-
-			/*Since no brakeMode is set yet, the arms should fall to a natural resting
-			position during the delay and will be synced together when they are zeroed*/
-			pros::delay(200);
-
-			armL.moveVelocity(0);
-			armR.moveVelocity(0);
-			pros::delay(200);
-
-			//Zeros the lift arm position
-			armL.tarePosition();
-			armR.tarePosition();
-
-			//Zeros the shaft encoders on the lift arms
-			armLEncoder.reset();
-			armREncoder.reset();
-
-			pros::delay(100);
-
-			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
-			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
-			break;
-		}
-	}
+void deployAntitip(void* param){
 	//Deploy the anti-tip by moving the tray up and then back down
 	int tilterPosTemp = 100;//Position to raise the tilter(tray) to
  tilterPosition(tilterPosTemp, 90);
@@ -66,6 +24,24 @@ void deployTray() {
 	}
 
 	tilterPosition(0, 90);//brings the tilter(tray) back to zero position
+}
+
+/*
+ Function to  deploy the tray, roller arms, and anti-tip on match start or when
+ the right arrow button on the dpad is pressed.
+*/
+void deployTray(){
+	int posTemp = 100;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
+	liftPositionDelay(posTemp, 40); //halts code exectuion until the arms reach their intended position with a minus one for error
+
+	posTemp = 800;
+	liftPositionDelay(posTemp, 80);//halts code exectuion until the arms reach their intended position with a minus one for error
+
+	//deploy the anti-tip simultaneously with arm movement
+	pros::Task my_task(deployAntitip,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "deploy");
+
+	liftZero();//zero the lift arms
+
 	liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
 	armUp = false;//Since the arms are down, set the armUp flag to false so that TowerAssist knows what to do
 }
@@ -132,11 +108,15 @@ void presets(string preset) {
 	}
 	if (preset == "left") {
 		if(toggleAssist) {
-			master.rumble("-");//If toggle assist is on going off, rumble teo longs
+			master.rumble("-");//If toggle assist is on going off, rumble one long
 		}else {
 			master.rumble(".");//If toggle assist is off going on, rumble one short
 		}
 		toggleAssist = !toggleAssist;//Toggles the cube tower scoring assist feature
+	}
+	if (preset == "right" && deployed) {
+		liftZero();//zero the lift arms
+		liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
 	}
 }
 
