@@ -17,8 +17,7 @@ Runs the red side autonomous code
 */
 void autonRed();
 
-//backup auton path for one cube push, antitip wheel will push
-/*runPath("1", true);
-runPath("2");*/
+//Deploy tray and push one cube into the goal zone
+void autonPush();
 
 #endif

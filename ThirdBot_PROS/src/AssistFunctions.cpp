@@ -15,7 +15,7 @@
 */
 void deployAntitip(void* param){
 	//Deploy the anti-tip by moving the tray up and then back down
-	int tilterPosTemp = 100;//Position to raise the tilter(tray) to
+	int tilterPosTemp = 300;//Position to raise the tilter(tray) to
  tilterPosition(tilterPosTemp, 90);
 
 	 //halts code exectuion until the tray reachs its intended position with a minus one for error
@@ -31,8 +31,15 @@ void deployAntitip(void* param){
  the right arrow button on the dpad is pressed.
 */
 void deployTray(){
+	//back up against the wall
+	turnAngle2(90, -50);
+	move(-50);
+	pros::delay(500);
+	
 	int posTemp = 100;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
 	liftPositionDelay(posTemp, 40); //halts code exectuion until the arms reach their intended position with a minus one for error
+
+
 
 	posTemp = 800;
 	liftPositionDelay(posTemp, 80);//halts code exectuion until the arms reach their intended position with a minus one for error
@@ -87,11 +94,11 @@ void presets(string preset) {
 	*/
 	if (preset == "X") {
 		towerAssist();
-		liftPosition(445, 100);//Shortest tower height
+		liftPosition(475, 100);//Medium tower height
 	}
 	if (preset == "A") {
 		towerAssist();
-		liftPosition(350, 100);//Medium tower height
+		liftPosition(370, 100);//Shortest tower height
 	}
 	if (preset == "Y") {
 		liftPosition(800, 90); // behind the tray

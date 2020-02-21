@@ -33,7 +33,7 @@ bool deployed = false; //Tells the deploy function if the robot has deployed yet
 bool armUp = false; //Is the arm up (used to determine whether or not to activate auto tower function)
 bool toggleAssist = true; //Auto Tower Assist feature starts on
 
-int bPresetPos = 60;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
+int bPresetPos = 75;//number of degrees / 5 to set the lift arm above the zero position when the bPreset is pressed
 
 /*
  These are the chassis variables that are used for the driver control

@@ -52,7 +52,7 @@ void initialize() {
  Runs the autonomous function for the auton period.
 */
 void autonomous() {
-	autonBlue();
+	autonPush();
 }
 
 /*

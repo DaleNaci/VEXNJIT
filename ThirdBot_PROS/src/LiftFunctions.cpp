@@ -54,36 +54,39 @@ void liftPositionDelay(int pos, int speed)
  arms
  */
 void liftZero(){
-	lift(-100);//Brings the arms back down
-	//Stops the arms when one or both arms triggers the zero button
-	while (true) {
-		if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
-			//pushes the lift arms into the buttons
-			armL.moveVelocity(-10);
-			armR.moveVelocity(-10);
-
-			pros::delay(200);
-
-			//stops moving the lift arms
-			armL.moveVelocity(0);
-			armR.moveVelocity(0);
-			pros::delay(200);
-			/*Since no brakeMode is set yet, the arms should fall to a natural resting
-			position during the delay and will be synced together when they are zeroed*/
-
-			//Zeros the lift arm position
-			armL.tarePosition();
-			armR.tarePosition();
-
-			//Zeros the shaft encoders on the lift arms
-			armLEncoder.reset();
-			armREncoder.reset();
-
-			pros::delay(5);
-
-			armL.setBrakeMode(AbstractMotor::brakeMode::hold);
-			armR.setBrakeMode(AbstractMotor::brakeMode::hold);
-			break;
+	if(armLStop.isPressed() && armRStop.isPressed()){}else{
+		lift(-100);//Brings the arms back down
+		//Stops the arms when one or both arms triggers the zero button
+		while (true) {
+			if (armLStop.changedToPressed() || armRStop.changedToPressed()) {
+				break;
+			}
 		}
 	}
+		//pushes the lift arms into the buttons
+		armL.moveVelocity(-10);
+		armR.moveVelocity(-10);
+
+		pros::delay(200);
+
+		//stops moving the lift arms
+		armL.moveVelocity(0);
+		armR.moveVelocity(0);
+		pros::delay(200);
+		/*Since no brakeMode is set yet, the arms should fall to a natural resting
+		position during the delay and will be synced together when they are zeroed*/
+
+		//Zeros the lift arm position
+		armL.tarePosition();
+		armR.tarePosition();
+
+		//Zeros the shaft encoders on the lift arms
+		armLEncoder.reset();
+		armREncoder.reset();
+
+		pros::delay(5);
+
+		armL.setBrakeMode(AbstractMotor::brakeMode::hold);
+		armR.setBrakeMode(AbstractMotor::brakeMode::hold);
+
 }
