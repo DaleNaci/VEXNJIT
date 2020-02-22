@@ -224,9 +224,10 @@ void autonPush(){
   runPath("1", true, false);
   runPath("2", false, false);
 
-  deployTray();//deploys the tray, roller arms, and anti tip
+  deployTrayAuton();//deploys the tray, roller arms, and anti tip
   deployed = true;/*sets deployed to true so that the function cannot run
   again until the program is restarted, this helps ensure that it is not
   accidently used a second time during a match*/
+  move(0);
 
 }

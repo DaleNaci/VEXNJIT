@@ -32,16 +32,41 @@ void deployAntitip(void* param){
 */
 void deployTray(){
 	//back up against the wall
-	turnAngle2(90, -50);
 	move(-50);
-	pros::delay(500);
-	
+
 	int posTemp = 100;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
 	liftPositionDelay(posTemp, 40); //halts code exectuion until the arms reach their intended position with a minus one for error
 
 
 
 	posTemp = 800;
+	liftPositionDelay(posTemp, 80);//halts code exectuion until the arms reach their intended position with a minus one for error
+
+	//deploy the anti-tip simultaneously with arm movement
+	pros::Task my_task(deployAntitip,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "deploy");
+
+	liftZero();//zero the lift arms
+
+	liftPosition(bPresetPos, 100);//brings the arm rollers up a bit from the zero position, this improves intake and cube grabbing for towering
+	armUp = false;//Since the arms are down, set the armUp flag to false so that TowerAssist knows what to do
+}
+
+/*
+ Function to  deploy the tray, roller arms, and anti-tip after pushing one cube
+ into the goal zone
+*/
+void deployTrayAuton(){
+	//back up against the wall
+	turnAngle2(90, 50);
+	move(-50);
+	pros::delay(500);
+
+	int posTemp = 100;//Position to raise the arms to, when they go up the tray will deploy, followed by the arm rollers
+	liftPositionDelay(posTemp, 40); //halts code exectuion until the arms reach their intended position with a minus one for error
+
+
+
+	posTemp = 900;
 	liftPositionDelay(posTemp, 80);//halts code exectuion until the arms reach their intended position with a minus one for error
 
 	//deploy the anti-tip simultaneously with arm movement

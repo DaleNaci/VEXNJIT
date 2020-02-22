@@ -21,6 +21,12 @@ void deployAntitip(void* param);
 void deployTray();
 
 /*
+ Function to  deploy the tray, roller arms, and anti-tip after pushing one cube
+ into the goal zone
+*/
+void deployTrayAuton();
+
+/*
  Function to automatically load cubes into the lift arms for scoring towerAssist
 */
 void towerAssist();

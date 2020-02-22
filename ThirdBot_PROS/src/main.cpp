@@ -61,7 +61,8 @@ void autonomous() {
 */
 void opcontrol() {
 	toggleAssist = true;//turns on tower assist
-
+	//deployed = true;
+	//presets("right");
 	//Multi threaded driveControl so that the robot can be driven while other code is executed
 	pros::Task my_task(driveControl1,(void*)"PROS", TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "drive");
 
