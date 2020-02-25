@@ -5,7 +5,7 @@
 #include <string>
 
 
-std::string SELECTED_AUTON = "blue";
+std::string SELECTED_AUTON = "short_blue_out";
 
 void auton_initialize(std::string auton) {
 	if (auton == "red") {
@@ -568,6 +568,7 @@ void progSkills() {
 void testAuton() {
 	pidTurn(360);
 }
+
 
 void autonSelect(std::string selected) {
 	if (selected == "red") {
