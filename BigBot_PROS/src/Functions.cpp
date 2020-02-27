@@ -38,7 +38,7 @@ void tilterPosition(int pos, int speed) {
 }
 
 void rollersControl() {
-	if (liftL.getPosition() > 300) {
+	if (liftL.getPosition() > 400) {
 		if (intakeIn.isPressed()) {
 			rollers(56);
 		} else if (intakeOut.isPressed()) {
@@ -103,6 +103,10 @@ void presets(string preset) {
 	}
 	if (preset == "Left") {
 		liftPosition(0, 100);
+	}
+	if (preset == "Y") {
+		liftPosition(270, 100);
+		tilterPosition(-300, 100);
 	}
 }
 
