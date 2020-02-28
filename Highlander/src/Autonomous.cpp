@@ -5,7 +5,7 @@
 #include <string>
 
 
-std::string SELECTED_AUTON = "short_blue_out";
+std::string SELECTED_AUTON = "prog";
 
 void auton_initialize(std::string auton) {
 	if (auton == "red") {
@@ -75,21 +75,21 @@ void auton_initialize(std::string auton) {
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.5_ft, 0_ft, 0_deg}
+				{2.6_ft, 0_ft, 0_deg}
 			},
 			"10"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{0.3_ft, 0_ft, 0_deg}
+				{0.4_ft, 0_ft, 0_deg}
 			},
 			"11"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{0.3_ft, 0_ft, 0_deg}
+				{0.8_ft, 0_ft, 0_deg}
 			},
 			"12"
 		);
@@ -111,7 +111,7 @@ void auton_initialize(std::string auton) {
 		profileController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.63_ft, 0_ft, 0_deg}
+				{2.59_ft, 0_ft, 0_deg}
 			},
 			"2"
 		);
@@ -132,7 +132,7 @@ void auton_initialize(std::string auton) {
 		profileController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{1.85_ft, 0.7_ft, 43.5_deg}
+				{1.85_ft, 0.7_ft, 40.5_deg}
 			},
 			"5"
 		);
@@ -196,21 +196,21 @@ void auton_initialize(std::string auton) {
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{3.5_ft, 0_ft, 0_deg}
+				{3.3_ft, 0_ft, 0_deg}
 			},
 			"1"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{1.0_ft, 0_ft, 0_deg}
+				{0.9_ft, 0_ft, 0_deg}
 			},
 			"2"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.0_ft, 2.0_ft, 0_deg}
+				{2.0_ft, 2.15_ft, 0_deg}
 			},
 			"3"
 		);
@@ -224,7 +224,7 @@ void auton_initialize(std::string auton) {
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{3.5_ft, 0_ft, 0_deg}
+				{3.21_ft, 0_ft, 0_deg}
 			},
 			"5"
 		);
@@ -252,21 +252,21 @@ void auton_initialize(std::string auton) {
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.5_ft, 0_ft, 0_deg}
+				{2.2_ft, 0_ft, 0_deg}
 			},
 			"9"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.0_ft, 0_ft, 0_deg}
+				{2.1_ft, 0_ft, 0_deg}
 			},
 			"10"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{0.8_ft, 0_ft, 0_deg}
+				{1.1_ft, 0_ft, 0_deg}
 			},
 			"11"
 		);
@@ -280,14 +280,14 @@ void auton_initialize(std::string auton) {
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{2.0_ft, 0_ft, 0_deg}
+				{1.7_ft, 0_ft, 0_deg}
 			},
 			"13"
 		);
 		slowController->generatePath(
 			{
 				{0_ft, 0_ft, 0_deg},
-				{3.0_ft, 0_ft, 0_deg}
+				{1.29_ft, 0_ft, 0_deg}
 			},
 			"14"
 		);
@@ -303,7 +303,7 @@ void red() {
 	slowController->setTarget("1");
 	slowController->waitUntilSettled();
 
-	pros::delay(1000);
+	pros::delay(1200);
 	rollers(0);
 	profileController->setTarget("2", true);
 	profileController->waitUntilSettled();
@@ -342,10 +342,10 @@ void red() {
 	profileController->setTarget("9", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(195);
+	pidTurn(180);
 	pros::delay(1200);
 	slowController->setTarget("10");
-	rollersPosition(60, 40);
+	rollersPosition(130, 40);
 	slowController->waitUntilSettled();
 
 	presets("Left");
@@ -376,7 +376,7 @@ void red() {
 
 	presets("B");
 	presets("Left");
-	pidTurn(71);
+	pidTurn(65);
 }
 
 void blue() {
@@ -390,7 +390,7 @@ void blue() {
 	profileController->setTarget("2", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(100);
+	pidTurn(77);
 	pros::delay(300);
 	profileController->setTarget("3");
 	profileController->waitUntilSettled();
@@ -414,7 +414,7 @@ void blue() {
 	profileController->setTarget("7", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(-14);
+	pidTurn(-15);
 	pros::delay(200);
 	rollers(-100);
 	profileController->setTarget("8");
@@ -424,10 +424,10 @@ void blue() {
 	profileController->setTarget("9", true);
 	profileController->waitUntilSettled();
 
-	pidTurn(-173);
+	pidTurn(-181);
 	pros::delay(1200);
 	slowController->setTarget("10");
-	rollersPosition(60, 40);
+	rollersPosition(140, 100);
 	slowController->waitUntilSettled();
 
 	presets("Left");
@@ -458,7 +458,7 @@ void blue() {
 
 	presets("B");
 	presets("Left");
-	pidTurn(-60);
+	pidTurn(-65);
 }
 
 void progSkills() {
@@ -484,11 +484,13 @@ void progSkills() {
 
 	pros::delay(1000);
 	rollers(0);
-	pidTurn(135);
-	profileController->setTarget("6");
+	pidTurn(129);
+	slowController->setTarget("6");
 	rollersPosition(-500, 100);
-	profileController->waitUntilSettled();
+	slowController->waitUntilSettled();
 
+	presets("Left");
+	rollersPosition(170, 100);
 	slowController->setTarget("7");
 	slowController->waitUntilSettled();
 
@@ -508,24 +510,21 @@ void progSkills() {
 	slowController->setTarget("8");
 	slowController->waitUntilSettled();
 
-	pros::delay(1000);
-	slowController->setTarget("8");
-	slowController->waitUntilSettled();
-
 	pros::delay(500);
 	slowController->setTarget("9", true);
 	slowController->waitUntilSettled();
 
 	pros::delay(100);
-	pidTurn(-135);
+	presets("B");
+	pidTurn(-143);
 	slowController->setTarget("10");
 	rollers(-95);
 	slowController->waitUntilSettled();
 
-	pros::delay(500);
-	rollers(0);
-	rollersPosition(-100, 100);
-	slowController->setTarget("11");
+	pros::delay(1500);
+	rollersPosition(115, 100);
+	pros::delay(200);
+	slowController->setTarget("11", true);
 	slowController->waitUntilSettled();
 
 	presets("X");
@@ -537,29 +536,32 @@ void progSkills() {
 	slowController->waitUntilSettled();
 
 	rollersPosition(600, 100);
+	pros::delay(1000);
 	slowController->setTarget("13", true);
-	presets("B");
 	slowController->waitUntilSettled();
 
+	presets("B");
+	pidTurn(-99);
 	slowController->setTarget("14");
 	rollers(-95);
 	slowController->waitUntilSettled();
 
-	pros::delay(500);
-	rollers(0);
-	rollersPosition(-100, 100);
-	slowController->setTarget("11");
+	pros::delay(1500);
+	rollersPosition(115, 100);
+	pros::delay(200);
+	slowController->setTarget("11", true);
 	slowController->waitUntilSettled();
 
-	presets("X");
+	presets("A");
 	while (tilter1.getPosition() >= -240) {
 		continue;
 	}
-	presets("X");
+	presets("A");
 	slowController->setTarget("12");
 	slowController->waitUntilSettled();
 
 	rollersPosition(600, 100);
+	pros::delay(2000);
 	slowController->setTarget("13", true);
 	presets("B");
 	slowController->waitUntilSettled();

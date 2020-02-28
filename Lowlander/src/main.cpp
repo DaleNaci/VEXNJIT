@@ -9,8 +9,10 @@
 #include "AssistFunctions.hpp"
 #include "Autonomous.hpp"
 #include "ControlFunctions.hpp"
+#include <string>
 
 using namespace std;
+
 
 
 /*
@@ -46,6 +48,8 @@ void initialize() {
 		},
 		"2"
 	);
+
+	pros::lcd::initialize();
 }
 
 /*
@@ -74,6 +78,8 @@ void opcontrol() {
 		presetControl();
 
 		pros::delay(20);//delay by good convention
+
+		pros::lcd::set_text(1, std::to_string(tilterL.getPosition()));
 	}
 }
 
