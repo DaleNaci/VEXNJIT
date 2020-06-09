@@ -11,7 +11,7 @@
 //These are the driver assist functions
 
 /*
- Functionm to deploy the anti-tip by lifting the tray up and then lowering it
+ Function to deploy the anti-tip by lifting the tray up and then lowering it
 */
 void deployAntitip(void* param){
 	//Deploy the anti-tip by moving the tray up and then back down
